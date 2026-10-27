@@ -9,13 +9,13 @@ K.store = (function () {
     streak: { count: 0, last: null, best: 0 },
     days: [],              // YYYY-MM-DD of practice days (last 60)
     history: [],           // [{ts, t, ok, n}] last 40 sessions
-    settings: { sound: true, haptics: true }
+    settings: { sound: true, haptics: true, autoRead: false }
   });
   let state = defaults();
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) state = Object.assign(defaults(), JSON.parse(raw));
-    state.settings = Object.assign({ sound: true, haptics: true }, state.settings);
+    state.settings = Object.assign({ sound: true, haptics: true, autoRead: false }, state.settings);
   } catch (e) {}
 
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };

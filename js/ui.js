@@ -83,6 +83,7 @@ K.ui = (function () {
     return { el: $('.sheet-body', el), close };
   }
   function closeSheet() {
+    if (K.speech) K.speech.stop();
     if (!sheetEl) return;
     const el = sheetEl, cb = sheetClose; sheetEl = null; sheetClose = null;
     el.classList.remove('show'); setTimeout(() => el.remove(), 250);

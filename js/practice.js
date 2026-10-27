@@ -132,7 +132,7 @@
     }
 
     function tipFor(q) {
-      if (q.t === 5) { const o = q.a === 5 ? q.b : q.a; return `<p class="fb-tip">${I().bulb} שיטת היד: סופרים יד אחת ${o} פעמים: <b dir="ltr">${Array.from({ length: o }, (_, i) => (i + 1) * 5).join(', ')}</b></p>`; }
+      if (q.t === 5) { const o = q.a === 5 ? q.b : q.a; return `<p class="fb-tip">${I().bulb} שיטת היד: סופרים יד אחת, ${o} פעמים: <b dir="ltr">${Array.from({ length: o }, (_, i) => (i + 1) * 5).join(', ')}</b></p>`; }
       if (q.t === 10) return `<p class="fb-tip">${I().bulb} כפל ב-10: כותבים את המספר ומוסיפים 0 בסוף.</p>`;
       if (q.t === 2) return `<p class="fb-tip">${I().bulb} כפל ב-2 זה להכפיל: ${q.a === 2 ? q.b : q.a} + ${q.a === 2 ? q.b : q.a}.</p>`;
       return '';

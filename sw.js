@@ -1,10 +1,10 @@
 /* Offline-first service worker. Bump VERSION when any asset changes. */
-const VERSION = 'kefel-v1.0.3';
+const VERSION = 'kefel-v1.1.0';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
   'css/base.css', 'css/components.css', 'css/screens.css',
   'js/data.js', 'js/store.js', 'js/audio.js', 'js/engine.js', 'js/art.js', 'js/ui.js', 'js/screens.js',
-  'js/lesson.js', 'js/practice.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js', 'js/app.js',
+  'js/lesson.js', 'js/practice.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js', 'js/speech.js', 'js/app.js',
   'fonts/rubik-hebrew-wght-normal.woff2', 'fonts/rubik-latin-wght-normal.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ];
