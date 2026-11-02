@@ -68,17 +68,19 @@
   } });
 
   /* ---------------- mission recommendation ---------------- */
+  /* recommended next table: first in K.ORDER without 2 stars (nothing is locked, this only guides) */
+  function recTable() {
+    const t = K.ORDER.find(t => K.store.tstate(t).stars < 2);
+    if (t) return t;
+    return K.ORDER.slice().sort((a, b) => K.store.tstate(a).stars - K.store.tstate(b).stars || K.store.tableMastery(a) - K.store.tableMastery(b))[0];
+  }
   function nextMission() {
     const st = S();
     if (!st.introDone) return { kind: 'intro', title: 'המשימה הראשונה: מה זה כפל?', cta: 'יוצאים לדרך', msg: `בואי נתחיל בשער הממלכה ונבין מה זה כפל.`, node: 'gate' };
-    const ready = K.readyTables();
-    const open = ready.map(t => ({ t, ts: K.store.tstate(t), m: K.store.tableMastery(t) }));
-    const noLesson = open.find(x => !x.ts.lesson);
-    if (noLesson) return { kind: 'lesson', t: noLesson.t, title: `שיעור קצר: טבלת ה-${noLesson.t}`, cta: 'לשיעור', msg: `מוכנה לגלות את הסודות של טבלת ה-${noLesson.t}?`, node: noLesson.t };
-    open.sort((a, b) => a.ts.stars - b.ts.stars || a.m - b.m);
-    const x = open[0];
-    const weak = weakFacts(x.t)[0];
-    return { kind: 'practice', t: x.t, title: `תרגול: טבלת ה-${x.t}`, cta: 'מתרגלים', msg: weak ? `כדאי לחזק את ${weak.t} × ${weak.m}. הוא יופיע בתרגול.` : `עוד סבב קצר בטבלת ה-${x.t} ויש עוד כוכב!`, node: x.t };
+    const t = recTable(), ts = K.store.tstate(t);
+    if (!ts.lesson) return { kind: 'lesson', t, title: `שיעור קצר: טבלת ה-${t}`, cta: 'לשיעור', msg: `ההמלצה שלי: טבלת ה-${t}. מוכנה לגלות את הסודות שלה?`, node: t };
+    const weak = weakFacts(t)[0];
+    return { kind: 'practice', t, title: `תרגול: טבלת ה-${t}`, cta: 'מתרגלים', msg: weak ? `כדאי לחזק את ${weak.t} × ${weak.m}. הוא יופיע בתרגול.` : `עוד סבב קצר בטבלת ה-${t} ויש עוד כוכב!`, node: t };
   }
   function weakFacts(t) {
     const out = [];
@@ -87,48 +89,76 @@
   }
   function startMission(m) { if (m.kind === 'intro') go('intro'); else if (m.kind === 'lesson') go('lesson/' + m.t); else go('practice/' + m.t); }
 
+  function dailyCard() {
+    const done = K.store.dailyDone(), n = K.store.dailyNow();
+    return `<div class="daily card${done ? ' done' : ''}">
+      <div class="daily-ic" aria-hidden="true">${done ? '✅' : '📅'}</div>
+      <div class="daily-txt"><b>תרגול יומי</b><small>${done ? `סיימת להיום! ${n > 1 ? `${n} ימים ברצף 🔥` : 'מחר ממשיכים את הרצף'}` : `5 דקות על התרגילים שהכי כדאי לחזק${n ? ` · רצף ${n} 🔥` : ''}`}</small></div>
+      <button class="btn ${done ? 'btn-secondary' : 'btn-good'}" id="daily">${done ? 'עוד פעם' : 'מתחילים'}</button></div>`;
+  }
+  const friendArea = () => K.AREAS.find(a => a.tables.includes(recTable())) || K.AREAS[0];
+
   /* ---------------- map ---------------- */
   route('map', { chrome: 'tabs', render(root) {
-    const st = S(), c = chr(), mission = nextMission(), P = K.art.NODES;
+    const st = S(), c = chr(), mission = nextMission(), P = K.art.NODES, CP = K.art.CHAMP, fa = friendArea();
     const pct = ([x, y]) => `left:${(x / 400 * 100).toFixed(2)}%;top:${(y / 900 * 100).toFixed(2)}%`;
     const nodeFor = t => {
-      const T = K.TABLES[t], ts = K.store.tstate(t), locked = !T.ready, rec = mission.node === t;
-      return `<button class="node ${locked ? 'locked' : 'open'}${rec ? ' rec' : ''}" style="${pct(P[t])};--nc:${T.color}" data-t="${t}" aria-label="${locked ? `טבלת ה-${t}, בקרוב` : `טבלת ה-${t}, ${ts.stars} כוכבים מתוך 3`}">
-        <span class="node-num">${t}</span>${locked ? `<span class="node-lock">${I().lock}</span>` : `<span class="node-stars">${K.ui.starsRow(ts.stars, 3, 'sm')}</span>`}
-        ${rec ? `<span class="guide ${P[t][0] < 200 ? 'gr' : 'gl'}">${K.ui.avatar(c.id)}<em>${mission.kind === 'practice' ? 'כאן!' : 'התחילי כאן!'}</em></span>` : ''}</button>`;
+      const T = K.TABLES[t], ts = K.store.tstate(t), rec = mission.node === t, ord = K.ORDER.indexOf(t) + 1;
+      return `<button class="node open${rec ? ' rec' : ''}" style="${pct(P[t])};--nc:${T.color}" data-t="${t}" aria-label="טבלת ה-${t}, ${ts.stars} כוכבים מתוך 3${rec ? ', מומלץ עכשיו' : ''}">
+        <span class="node-num">${t}</span><span class="node-ord" aria-hidden="true">${ord}</span><span class="node-stars">${K.ui.starsRow(ts.stars, 3, 'sm')}</span>
+        ${rec ? `<span class="guide ${P[t][0] < 200 ? 'gr' : 'gl'}">${K.ui.avatar(c.id)}<em>${mission.kind === 'practice' ? 'מומלץ!' : 'הבא בתור!'}</em></span>` : ''}</button>`;
     };
+    const champFor = a => { const m = st.medals[a.id]; return `<button class="node champ${m ? ' won ' + m : ''}" style="${pct(CP[a.id])}" data-area="${a.id}" aria-label="אתגר האלופה: ${a.name}${m ? ', מדליית ' + K.MEDALS[m].name : ''}"><span class="champ-f" aria-hidden="true">${a.friend.emoji}</span><span class="champ-m" aria-hidden="true">${m ? K.MEDALS[m].emoji : '🏆'}</span></button>`; };
     root.innerHTML = `<div class="map-layout">
       <aside class="map-side">
+        ${st.introDone ? dailyCard() : ''}
         <div class="mission card">
           <div class="mission-top"><div class="mission-char">${K.art.char(c.id, 'happy')}</div>${K.ui.bubble(mission.msg)}</div>
           <button class="btn btn-primary btn-lg" id="mission">${mission.cta}</button>
           <small class="mission-title">${mission.title}</small>
         </div>
+        <div class="friend card"><div class="friend-top"><span class="friend-e" aria-hidden="true">${fa.friend.emoji}</span><div><small>${fa.emoji} ${fa.name}</small><b>${fa.friend.name}</b></div></div>${K.ui.bubble(fa.friend.line)}</div>
+        <div class="crown-card card" id="crownCard">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${K.store.crownPieces()} מתוך ${K.AREAS.length} חלקים · כל מדליה באתגר האלופה של אזור מוסיפה חלק</small></div></div>
+        <div class="order card"><h3>הדרך המומלצת</h3><div class="order-row" dir="rtl">${K.ORDER.map(t => `<span class="oc${K.store.tstate(t).stars >= 2 ? ' done' : ''}${t === recTable() ? ' now' : ''}" style="--nc:${K.TABLES[t].color}">${t}</span>`).join('')}</div><small class="muted">הכול פתוח! זה רק הסדר שהכי קל ללמוד בו.</small></div>
         <div class="week card">${weekStrip()}</div>
-        <div class="legend card">
-          <h3>הכוכבים שלך</h3>
-          <ul><li>${K.ui.starsRow(1, 1)}<span>סבב תרגול טוב (60% ומעלה)</span></li><li>${K.ui.starsRow(2, 2)}<span>סבב מצוין (80% ומעלה)</span></li><li>${K.ui.starsRow(3, 3)}<span>כל הטבלה שלך!</span></li></ul>
-        </div>
       </aside>
       <section class="map-wrap" aria-label="מפת הממלכה"><div class="map">
         ${K.art.mapScene()}
-        ${K.AREAS.filter(a => a.tables.every(t => !K.TABLES[t].ready)).map(a => `<div class="fog fog-${a.id}"></div>`).join('')}
         <button class="node gate open${mission.node === 'gate' ? ' rec' : ''}" style="${pct(P.gate)}" data-t="gate" aria-label="שער הממלכה: מה זה כפל?">
           <span class="node-num">${I().book}</span><span class="node-label">${st.introDone ? 'מה זה כפל? ✓' : 'מה זה כפל?'}</span>
           ${mission.node === 'gate' ? `<span class="guide">${K.ui.avatar(c.id)}<em>התחילי כאן!</em></span>` : ''}</button>
         ${K.TABLE_LIST.map(nodeFor).join('')}
+        ${K.AREAS.map(champFor).join('')}
       </div></section>
     </div>`;
     $('#mission').onclick = () => { A('pop'); startMission(mission); };
+    const dl = $('#daily'); if (dl) dl.onclick = () => { A('pop'); go('practice/daily'); };
+    $('#crownCard').onclick = () => go('home');
     $$('.node', root).forEach(n => n.onclick = () => {
       A('pop');
+      if (n.dataset.area) return areaSheet(n.dataset.area);
       const t = n.dataset.t;
       if (t === 'gate') return go('intro');
       tableSheet(Number(t));
     });
-    // scroll the recommended node into view (map is tall on phones)
-    setTimeout(() => { const r = $('.node.rec', root) || $('.node.open', root); if (r) r.scrollIntoView({ block: 'center', behavior: 'auto' }); }, 60);
+    // bring the recommended node into view only when it is off-screen (keeps the daily card visible on phones)
+    setTimeout(() => { const r = $('.node.rec', root); if (r) { const b = r.getBoundingClientRect(); if (b.bottom > innerHeight - 90 && innerWidth >= 900) r.scrollIntoView({ block: 'center', behavior: 'auto' }); } }, 60);
   } });
+
+  function areaSheet(id) {
+    const a = K.AREAS.find(x => x.id === id), m = S().medals[id], M = m ? K.MEDALS[m] : null;
+    if (!S().friends.includes(id)) { S().friends.push(id); K.store.save(); }
+    const s = sheet(`<div class="tsheet asheet">
+      <div class="friend-big" aria-hidden="true">${a.friend.emoji}</div>
+      <h2>${a.emoji} ${a.name}</h2>
+      ${K.ui.bubble(`<b>${a.friend.name}:</b> ${a.friend.line}`)}
+      <div class="a-tables">${a.tables.map(t => `<button class="oc" style="--nc:${K.TABLES[t].color}" data-t="${t}" aria-label="טבלת ה-${t}">${t}</button>`).join('')}</div>
+      <div class="champ-box"><span class="champ-medal" aria-hidden="true">${M ? M.emoji : '🏆'}</span><div><b>אתגר האלופה</b><small>${M ? `יש לך מדליית ${M.name}! אפשר לנסות לשפר.` : `מבחן מעורב של ${a.tables.length > 1 ? 'טבלאות ' + a.tables.join(', ') : 'טבלת ה-' + a.tables[0]}. מדליה מוסיפה לכתר את ${a.piece.name}.`}</small><small class="muted">ארד 55% · כסף 75% · זהב 90%</small></div></div>
+      <div class="tsheet-actions"><button class="btn btn-primary btn-lg" id="champ">🏆 לאתגר!</button><button class="btn btn-secondary btn-lg" id="ag">🎈 משחק באזור</button></div></div>`);
+    $('#champ', s.el).onclick = () => { s.close(); go('practice/champ-' + id); };
+    $('#ag', s.el).onclick = () => { s.close(); go('games/area-' + id); };
+    $$('.a-tables .oc', s.el).forEach(b => b.onclick = () => { s.close(); setTimeout(() => tableSheet(Number(b.dataset.t)), 320); });
+  }
 
   function weekStrip() {
     const days = new Set(S().days), out = [], names = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
@@ -149,11 +179,6 @@
 
   function tableSheet(t) {
     const T = K.TABLES[t], ts = K.store.tstate(t);
-    if (!T.ready) {
-      const s = sheet(`<div class="tsheet"><div class="tbadge locked" style="--nc:${T.color}">${t}</div><h2>טבלת ה-${t}</h2><p class="muted">האזור הזה עוד מכוסה בערפל קסום. הוא ייפתח בקרוב!</p><p class="muted">בינתיים אפשר להסתכל על טבלת ה-${t} בלוח הכפל.</p><button class="btn btn-secondary btn-lg" id="seeGrid">לוח הכפל</button></div>`);
-      $('#seeGrid', s.el).onclick = () => { s.close(); K.explorerFocus = t; go('explorer'); };
-      return;
-    }
     const lessonFirst = !ts.lesson, area = K.AREAS.find(a => a.id === T.area);
     const s = sheet(`<div class="tsheet">
       <div class="tbadge" style="--nc:${T.color}">${t}</div>
@@ -164,7 +189,9 @@
       <div class="tsheet-actions">
         <button class="btn ${lessonFirst ? 'btn-primary' : 'btn-secondary'} btn-lg" id="les">${I().book} ${lessonFirst ? 'שיעור קצר (מומלץ)' : 'חוזרים על השיעור'}</button>
         <button class="btn ${lessonFirst ? 'btn-secondary' : 'btn-primary'} btn-lg" id="prac">🎯 תרגול</button>
+        <button class="btn btn-secondary btn-lg" id="gm">🎈 משחקים</button>
       </div></div>`);
+    $('#gm', s.el).onclick = () => { s.close(); go('games/' + t); };
     $('#les', s.el).onclick = () => { s.close(); go('lesson/' + t); };
     $('#prac', s.el).onclick = () => { s.close(); go('practice/' + t); };
   }
@@ -173,24 +200,51 @@
   let newest = null;
   route('home', { chrome: 'tabs', render(root) {
     const st = S(), c = chr();
+    let cat = 'garden', placing = null;
+    const view = () => st.home.view === 'room' ? 'room' : 'yard';
     function draw() {
-      const own = st.owned.length;
+      const own = st.owned.length, total = K.SHOP.length, pieces = K.store.crownPieces();
+      const items = K.SHOP.filter(it => it.cat === cat);
+      const pIt = placing ? K.SHOP.find(x => x.id === placing) : null;
       root.innerHTML = `<div class="home">
-        <div class="home-stage"><div class="home-scene">${K.art.homeScene(c.id, st.owned, newest)}<div class="home-char">${K.art.char(c.id, 'happy')}</div></div></div>
-        <div class="home-head"><div><h2 class="h-big">הבית שלי</h2><p class="sub">${own ? `קישטת ${own} דברים מתוך ${K.SHOP.length}` : 'אספי מטבעות בתרגול וקשטי את הטירה!'}</p></div>
+        <div class="home-top">
+          <div class="seg" role="tablist" aria-label="איפה בבית"><button role="tab" class="${view() === 'yard' ? 'on' : ''}" data-v="yard" aria-selected="${view() === 'yard'}">🏰 בחוץ</button><button role="tab" class="${view() === 'room' ? 'on' : ''}" data-v="room" aria-selected="${view() === 'room'}">🛋️ החדר שלי</button></div>
           <div class="coin-pill">${I().coin}<b id="coinBal">${st.coins}</b></div></div>
-        <div class="shop" role="list">${K.SHOP.map(it => {
-          const has = st.owned.includes(it.id), can = st.coins >= it.price;
-          return `<button class="shop-item${has ? ' owned' : ''}${!has && !can ? ' cant' : ''}" data-id="${it.id}" role="listitem" ${has ? 'disabled' : ''} aria-label="${it.name}, ${has ? 'כבר בבית' : it.price + ' מטבעות'}">
+        <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene">${K.art.homeScene(c.id, st.owned, newest, { view: view(), placing })}<div class="home-char${view() === 'room' ? ' in-room' : ''}">${K.art.char(c.id, 'happy')}</div></div>
+          ${placing ? `<div class="place-bar"><span>${pIt.emoji} בחרי מקום ל${pIt.name}</span><button class="btn btn-secondary" id="store">לאחסון</button><button class="btn btn-primary" id="donePl">סיימתי</button></div>` : ''}</div>
+        <div class="crown-row card">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${pieces === K.AREAS.length ? 'הכתר שלם! אפשר להציב אותו על הטירה (בקטגוריית הטירה).' : `${pieces} מתוך ${K.AREAS.length} חלקים. כל מדליה באתגר האלופה של אזור מוסיפה חלק.`}</small><div class="pieces">${K.AREAS.map(a => `<span class="${st.medals[a.id] ? 'on' : ''}" style="--pc:${a.piece.color}">${st.medals[a.id] ? K.MEDALS[st.medals[a.id]].emoji : '◇'} ${a.piece.name}</span>`).join('')}</div></div></div>
+        <div class="home-head"><div><h2 class="h-big">הבית שלי</h2><p class="sub">${own ? `יש לך ${own} דברים מתוך ${total}. לחצי על דבר שכבר קנית כדי להזיז אותו.` : 'אספי מטבעות ומדליות וקשטי את הטירה!'}</p></div></div>
+        <div class="chip-row cats" role="tablist">${K.SHOP_CATS.map(x => `<button class="chip${x.id === cat ? ' on' : ''}" data-cat="${x.id}" role="tab" aria-selected="${x.id === cat}">${x.emoji} ${x.name}</button>`).join('')}</div>
+        <div class="shop" role="list">${items.map(it => {
+          const has = st.owned.includes(it.id), can = st.coins >= it.price, open = K.store.unlocked(it), movable = has && !!K.SLOTS[it.zone];
+          const placed = movable && st.home.place[it.id] != null;
+          return `<button class="shop-item${has ? ' owned' : ''}${!has && (!can || !open) ? ' cant' : ''}${!open && !has ? ' locked' : ''}" data-id="${it.id}" role="listitem" ${has && !movable ? 'disabled' : ''} aria-label="${it.name}, ${has ? (movable ? 'לחיצה להזזה' : 'כבר בבית') : !open ? K.store.needText(it) : it.price + ' מטבעות'}">
             <span class="si-emoji">${it.emoji}</span><b>${it.name}</b>
-            <span class="si-price">${has ? `<span class="si-own">${I().check} בבית</span>` : `${I().coin}<em>${it.price}</em>`}</span></button>`; }).join('')}</div>
+            <span class="si-price">${has ? `<span class="si-own">${I().check} ${movable ? (placed ? 'להזיז' : 'במחסן') : 'בבית'}</span>` : !open ? `<span class="si-need">🏅 ${K.store.needText(it)}</span>` : it.price ? `${I().coin}<em>${it.price}</em>` : '<em>מתנה</em>'}</span></button>`; }).join('')}</div>
         <div class="home-actions"><button class="btn btn-secondary" id="chg">החלפת דמות</button></div></div>`;
+      $$('.seg button', root).forEach(b => b.onclick = () => { st.home.view = b.dataset.v; placing = null; K.store.save(); A('tap'); draw(); });
+      $$('.cats .chip', root).forEach(b => b.onclick = () => { cat = b.dataset.cat; A('tap'); draw(); });
+      $$('.home-svg .slot', root).forEach(g => g.onclick = () => { K.store.place(placing, Number(g.dataset.slot)); A('pop'); newest = placing; placing = null; draw(); });
+      const sto = $('#store', root); if (sto) sto.onclick = () => { K.store.place(placing, null); placing = null; A('tap'); draw(); };
+      const dn = $('#donePl', root); if (dn) dn.onclick = () => { placing = null; draw(); };
       $$('.shop-item', root).forEach(b => b.onclick = () => {
         const it = K.SHOP.find(x => x.id === b.dataset.id);
+        if (st.owned.includes(it.id)) { // move an owned slot item
+          if (!K.SLOTS[it.zone]) return;
+          const v = it.zone === 'yard' ? 'yard' : 'room';
+          st.home.view = v; placing = it.id; newest = null; A('pop'); draw();
+          $('.home-stage', root).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+          return;
+        }
+        if (!K.store.unlocked(it)) { A('wrong'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 500); toast(`${it.name}: ${K.store.needText(it)} באתגר האלופה. 🏆`); return; }
         if (K.store.buy(it.id)) {
-          A('buy'); newest = it.id; K.ui.updateHud(); draw();
+          A('buy'); newest = it.id;
+          if (K.SLOTS[it.zone]) st.home.view = it.zone === 'yard' ? 'yard' : 'room';
+          else st.home.view = 'yard';
+          K.store.save(); K.ui.updateHud(); draw();
+          $('.home-stage', root).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
           setTimeout(() => { const el = $('.home-scene .pop-in') || $('.home-scene'); burstAt(el, { count: 50, stars: true }); }, 60);
-          toast(`${it.name} נוסף לבית!`);
+          toast(K.SLOTS[it.zone] && st.home.place[it.id] == null ? `${it.name} במחסן: אין מקום פנוי. לחצי עליה כדי להחליף מקום.` : `${it.name} נוסף לבית! אפשר ללחוץ עליו כדי להזיז.`);
         } else { A('wrong'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 500); toast(`חסרים עוד ${it.price - st.coins} מטבעות. תרגול קצר יעזור!`); }
       });
       $('#chg').onclick = () => {

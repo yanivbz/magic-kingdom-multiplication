@@ -20,19 +20,21 @@ K.engine = (function () {
   }
 
   class Session {
-    constructor(t, total = 6) {
-      this.t = t; this.total = total; this.asked = 0; this.retryQ = [];
+    /* t: a table number, or null with opts.pool = [{t,m}] for mixed sessions (daily / champion) */
+    constructor(t, total = 6, opts = {}) {
+      this.t = t; this.total = total; this.pool = opts.pool || null; this.noRetry = !!opts.noRetry; this.fixedLevel = opts.level || 0; this.asked = 0; this.retryQ = [];
       this.run = 0; this.justWrong = false; this.recent = []; this.lastType = null;
       this.results = []; this.askedKeys = {};
-      this.level = K.store.tstate(t).level;
+      this.level = this.fixedLevel || (t ? K.store.tstate(t).level : 2);
     }
     get done() { return this.asked >= this.total && this.retryQ.length === 0; }
     get progress() { return Math.min(1, this.results.length / (this.total + this.extra())); }
     extra() { return this.results.filter(r => r.retry).length + this.retryQ.length; }
 
     pickFact() {
-      const now = Date.now(), t = this.t, ws = [];
-      for (let m = 1; m <= 10; m++) {
+      const now = Date.now(), ws = [];
+      const cands = this.pool || Array.from({ length: 10 }, (_, i) => ({ t: this.t, m: i + 1 }));
+      for (const { t, m } of cands) {
         const key = K.store.fkey(t, m);
         if (this.recent.slice(-2).includes(key)) continue;
         const f = K.store.fact(t, m);
@@ -47,7 +49,7 @@ K.engine = (function () {
         if (m === 1 && f.box >= 1) w *= 0.3;
         if (m === 1 && f.seen === 0) w *= 0.6;
         if (this.askedKeys[key]) w *= 0.15;
-        ws.push({ m, key, w });
+        ws.push({ t, m, key, w });
       }
       const sum = ws.reduce((s, x) => s + x.w, 0); let r = Math.random() * sum;
       for (const x of ws) { r -= x.w; if (r <= 0) return x; }
@@ -55,28 +57,27 @@ K.engine = (function () {
     }
 
     next() {
-      let m, retry = false;
+      let m, t, retry = false;
       const due = this.retryQ.findIndex(r => r.at <= this.asked);
       if (due >= 0 || (this.asked >= this.total && this.retryQ.length)) {
         const idx = due >= 0 ? due : 0;
-        m = this.retryQ.splice(idx, 1)[0].m; retry = true;
-      } else { m = this.pickFact().m; this.asked++; }
-      const key = K.store.fkey(this.t, m);
+        ({ m, t } = this.retryQ.splice(idx, 1)[0]); retry = true;
+      } else { ({ m, t } = this.pickFact()); this.asked++; }
+      const key = K.store.fkey(t, m);
       this.askedKeys[key] = (this.askedKeys[key] || 0) + 1; this.recent.push(key);
-      const f = K.store.fact(this.t, m);
+      const f = K.store.fact(t, m);
       let tier = f.seen === 0 ? 0 : f.box <= 1 ? 0 : f.box <= 3 ? 1 : 2;
       if (this.level === 3 && f.box >= 2) tier++;
       if (this.level === 1) tier--;
       if (this.run >= 2) tier++;
       if (this.justWrong || retry) tier = Math.min(tier, 0);
       tier = Math.max(0, Math.min(2, tier));
-      const q = this.make(m, tier, retry);
+      const q = this.make(m, tier, retry, t);
       this.lastType = q.type;
       return q;
     }
 
-    make(m, tier, retry) {
-      const t = this.t;
+    make(m, tier, retry, t = this.t) {
       let a = t, b = m;
       if (Math.random() < 0.5) { a = m; b = t; }
       const big = a >= 2 && b >= 2;
@@ -113,18 +114,19 @@ K.engine = (function () {
     /* call after the child answered: updates mastery & momentum, queues a retry on a mistake */
     report(q, { correct, hinted }) {
       K.store.recordAnswer(q.t, q.m, { correct, hinted });
-      this.results.push({ key: q.key, m: q.m, correct, hinted, retry: q.retry, a: q.a, b: q.b });
+      this.results.push({ key: q.key, t: q.t, m: q.m, correct, hinted, retry: q.retry, a: q.a, b: q.b });
       if (correct) { this.run++; this.justWrong = false; }
       else {
         this.run = 0; this.justWrong = true;
-        if (!q.retry) this.retryQ.push({ m: q.m, at: this.asked + 2 });
+        if (!q.retry && !this.noRetry) this.retryQ.push({ m: q.m, t: q.t, at: this.asked + 2 });
       }
     }
     summary() {
       const first = this.results.filter(r => !r.retry);
       const ok = first.filter(r => r.correct).length;
       const hardFacts = [...new Set(this.results.filter(r => !r.correct).map(r => r.m))];
-      return { ok, n: first.length, hardFacts, run: this.results };
+      const hardPairs = [...new Map(this.results.filter(r => !r.correct).map(r => [r.key, { t: r.t, m: r.m }])).values()];
+      return { ok, n: first.length, hardFacts, hardPairs, run: this.results };
     }
   }
   return { Session, shuffle, pick, rnd };

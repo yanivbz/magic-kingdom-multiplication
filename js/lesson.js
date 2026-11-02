@@ -107,6 +107,31 @@
         }, 4);
       }
     }),
+    one: () => ({
+      title: 'כפל ב-1', say: K.TABLES[1].tip + ' קבוצה אחת של מספר היא פשוט המספר עצמו.',
+      render(stage) {
+        stage.innerHTML = `<div class="arr-wrap" id="aw"></div><div class="eq-line" id="eq"></div><p class="trick-note" id="note"></p>`;
+        picker(stage, n => {
+          $('#aw', stage).innerHTML = arrayHTML(1, n, { animate: true, cls: 'arr-sm' });
+          $('#eq', stage).innerHTML = `<div class="eq big" dir="ltr"><span>1</span><span>×</span><span>${n}</span><span>=</span><b>${n}</b></div><div class="eq big" dir="ltr"><span>${n}</span><span>×</span><span>1</span><span>=</span><b>${n}</b></div>`;
+          $('#note', stage).innerHTML = `שורה אחת של ${n} עיגולים היא ${n}. ו-${n} שורות של עיגול אחד הן גם ${n}!<br>${K.TABLES[1].pattern}`;
+          A('dot', n);
+        }, 6);
+      }
+    }),
+    double4: () => ({
+      title: 'מכפילים ומכפילים שוב', say: K.TABLES[4].tip,
+      render(stage) {
+        stage.innerHTML = `<div class="d4" id="d4"></div><div class="eq-line" id="eq"></div><p class="trick-note" id="note"></p>`;
+        picker(stage, n => {
+          const g = (k, c, d) => `<div class="dbl-g">${Array.from({ length: k }, (_, i) => `<i class="dot ${c}" style="--dd:${d + i * 25}ms"></i>`).join('')}</div>`;
+          $('#d4', stage).innerHTML = `<div class="d4-step"><small>${n}</small>${g(n, 'c0', 0)}</div><span class="d4-arrow">×2</span><div class="d4-step"><small>${2 * n}</small><div class="d4-pair">${g(n, 'c0', 120)}${g(n, 'c2', 200)}</div></div><span class="d4-arrow">×2</span><div class="d4-step"><small>${4 * n}</small><div class="d4-pair">${g(n, 'c0', 320)}${g(n, 'c2', 380)}${g(n, 'c1', 440)}${g(n, 'c3', 500)}</div></div>`;
+          $('#eq', stage).innerHTML = `<div class="eq" dir="ltr"><span>${n}</span><span>→</span><span class="ca">${n}+${n}=${2 * n}</span><span>→</span><span class="cb">${2 * n}+${2 * n}=${4 * n}</span></div><div class="eq big" dir="ltr"><span>4</span><span>×</span><span>${n}</span><span>=</span><b>${4 * n}</b></div>`;
+          $('#note', stage).textContent = `מכפילים את ${n} ומקבלים ${2 * n}, ומכפילים שוב ומקבלים ${4 * n}. ${K.TABLES[4].pattern}`;
+          A('dot', n);
+        }, 3);
+      }
+    }),
     split: t => ({
       title: 'מפרקים לטבלאות שאני מכירה', say: K.TABLES[t].tip,
       render(stage) {

@@ -63,7 +63,7 @@ K.ui = (function () {
     $('#hudChar').onclick = () => { K.audio.play('pop'); go('home'); };
   }
   function updateTabs(active) {
-    const T = [['map', 'מפה', I().map], ['explorer', 'לוח הכפל', I().grid], ['intro', 'מה זה כפל?', I().book], ['home', 'הבית שלי', I().home]];
+    const T = [['map', 'מפה', I().map], ['explorer', 'לוח הכפל', I().grid], ['games', 'משחקים', I().game], ['intro', 'מה זה כפל?', I().book], ['home', 'הבית שלי', I().home]];
     tabs.innerHTML = T.map(([id, label, ic]) => `<a href="#/${id}" class="tab${active === id ? ' on' : ''}" ${active === id ? 'aria-current="page"' : ''}>${ic}<span>${label}</span></a>`).join('');
     $$('.tab', tabs).forEach(a => a.addEventListener('click', () => K.audio.play('tap')));
   }

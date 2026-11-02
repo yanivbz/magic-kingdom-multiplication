@@ -15,3 +15,12 @@ A Hebrew RTL PWA that teaches the grade-3 multiplication table to Omer, with a c
 **Progress** is stored in localStorage (`kefel.v1`). The parent corner is behind a multiplication gate.
 
 **Read-aloud:** a 🔊 button sits next to every meaningful text (tap = read, tap again = stop, changing screen stops it). It uses only the browser's Web Speech API and picks the best he-IL female voice by name (Carmit / Hila / Google Hebrew), rate 0.9, pitch 1.1. Numbers and equations are spoken as Hebrew words ("שלוש כפול חמש שווה חמש עשרה"). With no Hebrew voice on the device the buttons are hidden. Auto-read: parent corner → settings (off by default). Code: `js/speech.js`. Voice quality depends on the device's voices.
+
+## מה חדש בגרסה 2.0
+- כל הטבלאות 1–10 פתוחות, עם שיעור, טריק וטיפים לכל טבלה. על המפה מסומן סדר מומלץ (2, 5, 10, 1 → 4 → 3 → 9 → 6, 7, 8).
+- אתגר אלופה בכל אזור: מבחן מעורב שנותן מדליית ארד, כסף או זהב. כל מדליה מוסיפה חלק לכתר הממלכה.
+- חברה חדשה בכל אזור (דבורה, פרפרית, ינשופה, דרקונית), עם משפט שאפשר להקריא.
+- שלושה מיני-משחקים: פיצוץ בלונים, זוגות זיכרון ומרוץ (השעון לבחירה). התרגילים נבחרים לפי מה שהכי כדאי לחזק.
+- תרגול יומי של כ-5 דקות על התרגילים החלשים, עם רצף ימים.
+- הבית: 30 פריטים בקטגוריות גינה, רהיטים, חיות וטירה. אפשר לעבור בין החצר לחדר, להזיז פריטים בין מקומות, וחלק מהפריטים נפתחים במדליות.
+- ההתקדמות השמורה עוברת אוטומטית לגרסה החדשה.

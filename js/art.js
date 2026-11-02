@@ -97,6 +97,7 @@ K.art = (function () {
   }
 
   const I = {
+    game: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8h10a5 5 0 0 1 4.6 7l-.6 1.400a2.600 2.600 0 0 1-4.300.700L15 15H9l-1.700 2.100a2.600 2.600 0 0 1-4.300-.700L2.400 15A5 5 0 0 1 7 8z" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.800" stroke-linejoin="round"/><path d="M7 10.500v3M5.500 12h3" stroke="currentColor" stroke-width="1.800" stroke-linecap="round"/><circle cx="16" cy="11" r="1.100" fill="currentColor"/><circle cx="18" cy="13" r="1.100" fill="currentColor"/></svg>`,
     coin: `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="14" fill="#ffb81f"/><circle cx="16" cy="16" r="14" fill="none" stroke="#e08a00" stroke-width="2"/><circle cx="16" cy="16" r="9.5" fill="#ffd966" stroke="#e8a000" stroke-width="1.5"/><path d="M16 9.5l2 4.2 4.6.6-3.4 3.2.9 4.5-4.1-2.3-4.1 2.3.9-4.5-3.4-3.2 4.6-.6z" fill="#ffb81f"/></svg>`,
     flame: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2c1 6 8 9 8 17a8 8 0 0 1-16 0c0-4 2-6 3-8 1 2 2 3 3 3 1-4 1-8 2-12z" fill="#ff7a3d"/><path d="M16 14c.6 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-2 1-3 1.600-4 .6 1 1.200 1.500 1.800 1.500.6-2 .6-4 .6-6z" fill="#ffd34d"/></svg>`,
     star: `<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.500l4.100 8.400 9.200 1.300-6.700 6.500 1.600 9.200L16 23.500l-8.200 4.400 1.600-9.200-6.700-6.500 9.200-1.300z" fill="#ffc41f" stroke="#e8920c" stroke-width="1.600" stroke-linejoin="round"/></svg>`,
@@ -125,7 +126,8 @@ K.art = (function () {
 
   /* ---------- kingdom map ---------- */
   const MAP = { w: 400, h: 900 };
-  const NODES = { gate: [200, 855], 2: [115, 770], 5: [270, 712], 10: [125, 652], 3: [270, 560], 4: [120, 496], 6: [272, 388], 7: [122, 328], 8: [265, 268], 9: [200, 172] };
+  const CHAMP = { forest: [342, 600], meadow: [345, 448], mountain: [345, 214], castle: [62, 44] };
+  const NODES = { gate: [200, 855], 1: [300, 790], 2: [115, 770], 5: [270, 712], 10: [125, 652], 3: [270, 560], 4: [120, 496], 6: [272, 388], 7: [122, 328], 8: [265, 268], 9: [200, 172] };
   function smoothPath(pts) {
     let d = `M${pts[0][0]} ${pts[0][1]}`;
     for (let i = 0; i < pts.length - 1; i++) {
@@ -141,7 +143,7 @@ K.art = (function () {
   const crystal = (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0-30L10-8 0 6-10-8z" fill="${c}"/><path d="M0-30L10-8 0-6z" fill="#fff" opacity=".35"/></g>`;
 
   function mapScene() {
-    const path = smoothPath([NODES.gate, NODES[2], NODES[5], NODES[10], NODES[3], NODES[4], NODES[6], NODES[7], NODES[8], NODES[9]]);
+    const path = smoothPath([NODES.gate, NODES[1], NODES[2], NODES[5], NODES[10], NODES[3], NODES[4], NODES[6], NODES[7], NODES[8], NODES[9]]);
     let flowers = '', trees = '', crystals = '';
     const fc = ['#ff6fae', '#ffd34d', '#ffffff', '#b78cff', '#ff8f3d'];
     for (let i = 0; i < 26; i++) { const x = (i * 83 + 40) % 380 + 10, y = 440 + ((i * 47) % 150); flowers += flower(x, y, fc[i % 5]); }
@@ -190,7 +192,7 @@ K.art = (function () {
     <path d="${path}" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
     <path d="${path}" fill="none" stroke="#fff6dc" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="${path}" fill="none" stroke="#e6c98a" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
-    ${ribbon(600, 'יער הדבש', false)}${ribbon(448, 'אחו הפרפרים', true)}${ribbon(222, 'הר הגבישים', true)}${ribbon(24, 'טירת הכוכבים', true)}
+    ${ribbon(600, 'יער הדבש', false)}${ribbon(448, 'אחו הפרפרים', false)}${ribbon(222, 'הר הגבישים', false)}${ribbon(24, 'טירת הכוכבים', false)}
   </svg>`;
   }
 
@@ -207,26 +209,73 @@ K.art = (function () {
     lantern: `<g>${[[148, 236], [252, 236], [96, 252], [304, 218]].map(([x, y], i) => `<g class="twinkle" style="animation-delay:${i * .4}s"><circle cx="${x}" cy="${y}" r="12" fill="#ffe680" opacity=".35"/><path d="M${x} ${y - 7}l2 5 5 .6-4 3.500 1 5-4-2.700-4 2.700 1-5-4-3.500 5-.6z" fill="#ffc41f"/></g>`).join('')}</g>`,
     butterfly: `<g>${[[150, 130], [244, 92]].map(([x, y], i) => `<g class="flutter" style="animation-delay:${i * .6}s" transform="translate(${x} ${y})"><ellipse cx="-6" cy="-3" rx="7" ry="9" fill="#ff8f3d"/><ellipse cx="6" cy="-3" rx="7" ry="9" fill="#ff8f3d"/><ellipse cx="-5" cy="6" rx="5" ry="6" fill="#ffd34d"/><ellipse cx="5" cy="6" rx="5" ry="6" fill="#ffd34d"/><rect x="-1" y="-8" width="2" height="18" rx="1" fill="${INK}"/></g>`).join('')}</g>`,
     doghouse: `<g transform="translate(40 250)"><rect x="-18" y="-16" width="36" height="28" fill="#ffb86b"/><path d="M-24-14L0-34 24-14z" fill="#e0457f"/><path d="M-8 12v-14a8 8 0 0 1 16 0v14z" fill="${INK}"/><rect x="-16" y="12" width="32" height="3" fill="#00000020"/></g>`,
-    unicorn: `<g class="float" transform="translate(262 252)"><text font-size="42" text-anchor="middle" y="0">🦄</text></g>`
+    unicorn: `<g transform="translate(262 252)"><g class="float"><text font-size="42" text-anchor="middle" y="0">🦄</text></g></g>`
   };
 
-  function homeScene(charId, owned, newest) {
-    const own = id => owned.includes(id) ? `<g class="home-item${newest === id ? ' pop-in' : ''}" data-item="${id}">${ITEMS[id]}</g>` : '';
-    return `<svg class="home-svg" viewBox="0 0 400 300" role="img" aria-label="הבית והטירה שלי">
-    <defs><linearGradient id="hSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#ffe9f4"/></linearGradient>
-    <linearGradient id="hRoof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9b6bff"/><stop offset="1" stop-color="#6c3fe0"/></linearGradient></defs>
-    <rect width="400" height="300" fill="url(#hSky)"/>
-    ${own('moon')}${own('rainbow')}
-    <g opacity=".95">${cloud(70, 50, .9)}${cloud(300, 80, .7, .9)}</g>
-    <path d="M-10 230Q90 205 200 225T410 215V300H-10z" fill="#a4e07d"/><path d="M-10 262Q120 240 240 262T410 250V300H-10z" fill="#8bd46f"/>
-    <g transform="translate(200 40)"><rect x="-44" y="52" width="88" height="130" rx="5" fill="#ffd3e6"/><rect x="-86" y="82" width="38" height="100" rx="4" fill="#ffc2dc"/><rect x="48" y="82" width="38" height="100" rx="4" fill="#ffc2dc"/>
-      <path d="M-52 54L0 0 52 54z" fill="url(#hRoof)"/><path d="M-92 84L-67 44-42 84z" fill="url(#hRoof)"/><path d="M42 84L67 44 92 84z" fill="url(#hRoof)"/>
-      <rect x="-12" y="120" width="24" height="62" rx="12" fill="#8a5a33"/><circle cx="6" cy="152" r="2" fill="#ffd34d"/>
-      <rect x="-6" y="70" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".85"/><rect x="-74" y="102" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".7"/><rect x="62" y="102" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".7"/></g>
-    <path d="M200 222Q160 250 120 300H280Q240 250 200 222z" fill="#fff6dc"/>
-    ${own('flag')}${own('tree')}${own('doghouse')}${own('flowers')}${own('fountain')}${own('swing')}${own('unicorn')}${own('lantern')}${own('balloon')}${own('butterfly')}
+  /* crown of the kingdom: one gem per region, lit by a champion medal */
+  function crown(_, hl) {
+    const med = K.store.state.medals, pos = { forest: [40, 62], meadow: [80, 44], castle: [120, 44], mountain: [160, 62] };
+    return `<svg class="crown-svg" viewBox="0 0 200 120" role="img" aria-label="הכתר של הממלכה: ${K.store.crownPieces()} חלקים מתוך ${K.AREAS.length}">
+      <path d="M22 104L12 34l44 34 44-52 44 52 44-34-10 70z" fill="${K.store.crownPieces() ? '#ffd34d' : '#ece6fb'}" stroke="${K.store.crownPieces() ? '#e09a00' : '#cfc3f2'}" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="22" y="96" width="156" height="16" rx="6" fill="${K.store.crownPieces() ? '#f5b700' : '#e4dbfa'}"/>
+      ${K.AREAS.map(a => { const [x, y] = pos[a.id], on = !!med[a.id]; return `<g class="gem${on ? ' on' : ''}${hl === a.id ? ' new' : ''}" transform="translate(${x} ${y})"><path d="M0-14L12 0 0 14-12 0z" fill="${on ? a.piece.color : '#fff'}" stroke="${on ? '#fff' : '#cfc3f2'}" stroke-width="3" ${on ? '' : 'stroke-dasharray="4 3"'}/>${on ? '<path d="M0-14L12 0 0-2z" fill="#fff" opacity=".45"/>' : ''}</g>`; }).join('')}
     </svg>`;
   }
 
-  return { char, icons: I, jar, mapScene, homeScene, NODES, MAP, ITEMS };
+  /* slot-based home: emoji items stand on a soft shadow; legacy SVG items keep their art and move by offset */
+  const ANCHOR = { tree: [58, 246], fountain: [318, 272], swing: [370, 254], doghouse: [40, 265], unicorn: [262, 256] };
+  const SIZE = { tree: 1, fountain: 1, swing: 1, doghouse: 1, unicorn: 1, mushroom: 30, sunflower: 40, kitten: 32, bunny: 32, turtle: 30, parrot: 32,
+    teddy: 34, books: 40, bed: 52, sofa: 52, piano: 48, crownpil: 34, picture: 44, clock: 36 };
+  function placed(it, slot, newest, placing) {
+    const [sx, sy] = K.SLOTS[it.zone][slot], cls = `home-item${newest === it.id ? ' pop-in' : ''}${placing === it.id ? ' placing' : ''}`;
+    if (ITEMS[it.id] && ANCHOR[it.id]) { const [ax, ay] = ANCHOR[it.id]; return `<g class="${cls}" data-item="${it.id}"><g transform="translate(${sx - ax} ${sy - ay})">${ITEMS[it.id]}</g></g>`; }
+    const fs = SIZE[it.id] || 34, wall = it.zone === 'wall';
+    return `<g class="${cls}" data-item="${it.id}" transform="translate(${sx} ${sy})">${wall ? '' : `<ellipse cx="0" cy="1" rx="${fs * .42}" ry="${fs * .1}" fill="#000" opacity=".13"/>`}<text class="emo" font-size="${fs}" text-anchor="middle" y="${wall ? fs * .35 : -fs * .08}">${it.emoji}</text></g>`;
+  }
+  function slotsLayer(zone, placing) {
+    if (!placing) return '';
+    return K.SLOTS[zone].map(([x, y], i) => `<g class="slot" data-slot="${i}" transform="translate(${x} ${y})" role="button" aria-label="מקום ${i + 1}"><circle r="15" cy="${zone === 'wall' ? 0 : -12}" fill="#fff" fill-opacity=".75" stroke="#7a4dff" stroke-width="2.5" stroke-dasharray="5 4"/><path d="M-6 ${zone === 'wall' ? 0 : -12}h12M0 ${zone === 'wall' ? -6 : -18}v12" stroke="#7a4dff" stroke-width="3" stroke-linecap="round"/></g>`).join('');
+  }
+  function homeScene(charId, owned, newest, opts = {}) {
+    const st = K.store.state, view = opts.view || 'yard', placing = opts.placing || null;
+    const pl = st.home.place, has = id => owned.includes(id);
+    const own = id => has(id) ? `<g class="home-item${newest === id ? ' pop-in' : ''}" data-item="${id}">${ITEMS[id]}</g>` : '';
+    const zoneItems = zones => K.SHOP.filter(it => zones.includes(it.zone) && has(it.id) && pl[it.id] != null && K.SLOTS[it.zone][pl[it.id]])
+      .map(it => ({ it, y: K.SLOTS[it.zone][pl[it.id]][1] + (it.zone === 'wall' ? -500 : 0) })).sort((a, b) => a.y - b.y).map(({ it }) => placed(it, pl[it.id], newest, placing)).join('');
+    const placingZone = placing ? K.SHOP.find(x => x.id === placing).zone : null;
+    if (view === 'room') return `<svg class="home-svg" viewBox="0 0 400 300" role="img" aria-label="החדר שלי בטירה">
+      <defs><pattern id="wp" width="28" height="28" patternUnits="userSpaceOnUse"><rect width="28" height="28" fill="#ffe3f1"/><circle cx="14" cy="14" r="3" fill="#ffc6e0"/><circle cx="0" cy="0" r="2" fill="#fff"/><circle cx="28" cy="28" r="2" fill="#fff"/></pattern>
+      <linearGradient id="fl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9b98a"/><stop offset="1" stop-color="#d39a66"/></linearGradient></defs>
+      <rect width="400" height="210" fill="url(#wp)"/><rect y="200" width="400" height="10" fill="#fff" opacity=".8"/>
+      <path d="M0 210H400V300H0z" fill="url(#fl)"/>${Array.from({ length: 7 }, (_, i) => `<path d="M${i * 66 - 20} 300L${i * 60 + 10} 210" stroke="#c4875a" stroke-width="1.5" opacity=".5"/>`).join('')}
+      <g transform="translate(200 40)"><rect x="-56" y="0" width="112" height="96" rx="56" fill="#bfe6ff" stroke="#fff" stroke-width="8"/><path d="M0 0V96M-56 52H56" stroke="#fff" stroke-width="6"/>${cloud(-18, 40, .45)}${cloud(24, 66, .35)}</g>
+      <path d="M128 36Q112 110 132 150" stroke="#b78cff" stroke-width="16" fill="none" stroke-linecap="round" opacity=".8"/><path d="M272 36Q288 110 268 150" stroke="#b78cff" stroke-width="16" fill="none" stroke-linecap="round" opacity=".8"/>
+      <ellipse cx="200" cy="262" rx="120" ry="26" fill="#9a6bff" opacity=".35"/><ellipse cx="200" cy="262" rx="98" ry="18" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="6 6" opacity=".7"/>
+      ${zoneItems(['wall', 'floor'])}${slotsLayer(placingZone, placing)}
+    </svg>`;
+    return `<svg class="home-svg" viewBox="0 0 400 300" role="img" aria-label="הבית והטירה שלי">
+    <defs><linearGradient id="hSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fd0ff"/><stop offset="1" stop-color="#ffe9f4"/></linearGradient>
+    <linearGradient id="hRoof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${has('goldroof') ? '#ffd34d' : '#9b6bff'}"/><stop offset="1" stop-color="${has('goldroof') ? '#f0a400' : '#6c3fe0'}"/></linearGradient></defs>
+    <rect width="400" height="300" fill="url(#hSky)"/>
+    <circle cx="60" cy="40" r="20" fill="#fff3a6" opacity="${has('moon') ? 0 : .9}"/>
+    ${own('moon')}${own('rainbow')}
+    <g opacity=".95">${cloud(70, 50, .9)}${cloud(300, 80, .7, .9)}</g>
+    <path d="M-10 200Q60 170 140 196T260 190 410 186V300H-10z" fill="#c2ecb0" opacity=".8"/>
+    <path d="M-10 230Q90 205 200 225T410 215V300H-10z" fill="#a4e07d"/><path d="M-10 262Q120 240 240 262T410 250V300H-10z" fill="#8bd46f"/>
+    ${has('turret') ? `<g transform="translate(200 40)"><rect x="96" y="40" width="34" height="142" rx="4" fill="#ffd3e6"/><path d="M90 42L113 0 136 42z" fill="url(#hRoof)"/><rect x="107" y="70" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".7"/><path d="M113 0V-16" stroke="#8a5a33" stroke-width="2"/><path d="M113-16l14 5-14 5z" fill="#ffc41f"/></g>` : ''}
+    <g transform="translate(200 40)"><rect x="-44" y="52" width="88" height="130" rx="5" fill="#ffd3e6"/><rect x="-86" y="82" width="38" height="100" rx="4" fill="#ffc2dc"/><rect x="48" y="82" width="38" height="100" rx="4" fill="#ffc2dc"/>
+      <path d="M-44 60h88M-86 90h38M48 90h38" stroke="#fff" stroke-width="3" stroke-dasharray="8 6" opacity=".6"/>
+      <path d="M-52 54L0 0 52 54z" fill="url(#hRoof)"/><path d="M-92 84L-67 44-42 84z" fill="url(#hRoof)"/><path d="M42 84L67 44 92 84z" fill="url(#hRoof)"/>
+      <rect x="-12" y="120" width="24" height="62" rx="12" fill="#8a5a33"/><circle cx="6" cy="152" r="2" fill="#ffd34d"/>
+      ${has('windows')
+        ? `<g>${[[-6, 70, 12, 20], [-74, 102, 12, 20], [62, 102, 12, 20]].map(([x, y, w, h], i) => `<rect x="${x - 2}" y="${y - 2}" width="${w + 4}" height="${h + 4}" rx="${(w + 4) / 2}" fill="#fff"/><rect class="twinkle" style="animation-delay:${i * .5}s" x="${x}" y="${y}" width="${w}" height="${h}" rx="${w / 2}" fill="${['#ff6fae', '#4db3ff', '#ffc41f'][i]}"/>`).join('')}</g>`
+        : `<rect x="-6" y="70" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".85"/><rect x="-74" y="102" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".7"/><rect x="62" y="102" width="12" height="20" rx="6" fill="#6c3fe0" opacity=".7"/>`}
+      ${has('crowntop') ? `<g class="float" transform="translate(0 -14)"><path d="M-18 8L-22-12-9-2 0-16 9-2 22-12 18 8z" fill="#ffd34d" stroke="#e09a00" stroke-width="2"/>${K.AREAS.map((a, i) => `<circle cx="${-13 + i * 8.7}" cy="3" r="2.6" fill="${a.piece.color}"/>`).join('')}</g>` : ''}</g>
+    <path d="M200 222Q160 250 120 300H280Q240 250 200 222z" fill="#fff6dc"/>${[[196, 236], [188, 254], [176, 274], [166, 294]].map(([x, y]) => `<ellipse cx="${x + (y - 236) * .5}" cy="${y}" rx="${6 + (y - 236) / 12}" ry="${2 + (y - 236) / 30}" fill="#eadbb5"/>`).join('')}
+    ${own('flag')}${own('flowers')}${own('lantern')}${own('balloon')}${own('butterfly')}
+    ${zoneItems(['yard'])}${slotsLayer(placingZone, placing)}
+    </svg>`;
+  }
+
+  return { char, icons: I, jar, mapScene, homeScene, crown, NODES, CHAMP, MAP, ITEMS };
 })();

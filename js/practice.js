@@ -6,10 +6,19 @@
   const pickMsg = arr => arr[Math.floor(Math.random() * arr.length)];
 
   route('practice', { chrome: 'flow', render(root, tArg) {
-    const t = Number(tArg), T = K.TABLES[t]; if (!T || !T.ready) return go('map', true);
+    /* modes: a table number · 'daily' (weakest facts, ~5 min) · 'champ-<area>' (mixed test → medal) */
+    const mode = tArg === 'daily' ? 'daily' : String(tArg || '').startsWith('champ-') ? 'champ' : 'table';
+    const area = mode === 'champ' ? K.AREAS.find(a => a.id === tArg.slice(6)) : null;
+    if (mode === 'champ' && !area) return go('map', true);
+    const t = mode === 'table' ? Number(tArg) : 0, T = mode === 'table' ? K.TABLES[t] : { color: mode === 'daily' ? '#2fc79a' : '#ffb81f' };
+    if (mode === 'table' && (!K.TABLES[t] || !T.ready)) return go('map', true);
     const st = K.store.state, c = K.CHARACTERS[st.char] || K.CHARACTERS.bear;
-    const levelBefore = K.store.tstate(t).level, starsBefore = K.store.tstate(t).stars;
-    const sess = new K.engine.Session(t, 6);
+    const levelBefore = t ? K.store.tstate(t).level : 0, starsBefore = t ? K.store.tstate(t).stars : 0;
+    let sess;
+    if (mode === 'table') sess = new K.engine.Session(t, 6);
+    else if (mode === 'daily') sess = new K.engine.Session(null, 10, { pool: K.store.pickFacts(K.store.activeTables(), 8, { weakest: true, noOnes: true }) });
+    else sess = new K.engine.Session(null, area.tables.length > 1 ? 10 : 8, { pool: area.tables.flatMap(x => Array.from({ length: 10 }, (_, i) => ({ t: x, m: i + 1 }))), noRetry: true, level: 3 });
+    const noHint = mode === 'champ';
     let q = null, hinted = false, locked = false, typed = '', sel = null, counted = 0, qn = 0;
     root.style.setProperty('--tc', T.color);
     root.innerHTML = `<div class="flow practice">
@@ -41,7 +50,8 @@
       q = sess.next(); hinted = false; locked = false; typed = ''; sel = null; counted = 0; qn++;
       setProgress();
       const moods = ['happy', 'think'];
-      coach(q.retry ? 'think' : (qn === 1 ? 'happy' : pickMsgMood()), q.retry ? K.MSG.retry : (qn === 1 ? 'אין שעון ואין לחץ. תחשבי בנחת, ואפשר לבקש רמז.' : prompts(q)));
+      const firstLine = mode === 'champ' ? `אתגר האלופה של ${area.name}! בלי רמזים הפעם, אבל בלי שעון. את יכולה!` : mode === 'daily' ? 'התרגול היומי שלך: התרגילים שהכי כדאי לחזק. תחשבי בנחת, ואפשר לבקש רמז.' : 'אין שעון ואין לחץ. תחשבי בנחת, ואפשר לבקש רמז.';
+      coach(q.retry ? 'think' : (qn === 1 ? 'happy' : pickMsgMood()), q.retry ? K.MSG.retry : (qn === 1 ? firstLine : prompts(q)));
       let body = '';
       const op = (a, b, r) => `<div class="eq q" dir="ltr"><span>${a}</span><span>×</span><span>${b}</span><span>=</span>${r}</div>`;
       if (q.type === 'choice') body = op(q.a, q.b, '<b class="qm">?</b>');
@@ -55,8 +65,8 @@
       const small = q.type === 'array' || q.type === 'eq' || q.type === 'story';
       $q.className = 'qcard enter' + (small ? ' roomy' : '');
       $q.innerHTML = `<p class="q-ask">${prompts(q)}</p>${body}<div id="hintbox"></div>
-        <button class="hint-btn" id="hint">${I().bulb} רמז</button>`;
-      $('#hint', root).onclick = showHint;
+        ${noHint ? '' : `<button class="hint-btn" id="hint">${I().bulb} רמז</button>`}`;
+      if (!noHint) $('#hint', root).onclick = showHint;
       // interactive rows count
       if (q.type === 'array') $$('.arr-row', $q).forEach(r => r.onclick = () => {
         if (locked) return; const i = Number(r.dataset.r) + 1; counted = i;
@@ -116,7 +126,7 @@
       $$('.key', $ans).forEach(b => b.disabled = true);
       const bl = $('#blank', $q); if (bl) { bl.classList.add(correct ? 'right' : 'miss'); if (!correct) setTimeout(() => { bl.textContent = q.answer; bl.classList.add('reveal'); }, 400); }
       const qm = $('.qm', $q); if (qm) { qm.textContent = q.answer; qm.classList.add(correct ? 'right' : 'reveal'); }
-      $('#hint', root).disabled = true;
+      if ($('#hint', root)) $('#hint', root).disabled = true;
       if (correct) {
         A('right'); burstAt(btn || bl || $q, { count: 34 });
         const streakMsg = sess.run >= 3 ? K.MSG.streak(sess.run) : '';
@@ -132,9 +142,14 @@
     }
 
     function tipFor(q) {
-      if (q.t === 5) { const o = q.a === 5 ? q.b : q.a; return `<p class="fb-tip">${I().bulb} שיטת היד: סופרים יד אחת, ${o} פעמים: <b dir="ltr">${Array.from({ length: o }, (_, i) => (i + 1) * 5).join(', ')}</b></p>`; }
-      if (q.t === 10) return `<p class="fb-tip">${I().bulb} כפל ב-10: כותבים את המספר ומוסיפים 0 בסוף.</p>`;
-      if (q.t === 2) return `<p class="fb-tip">${I().bulb} כפל ב-2 זה להכפיל: ${q.a === 2 ? q.b : q.a} + ${q.a === 2 ? q.b : q.a}.</p>`;
+      const o = q.a === q.t ? q.b : q.a, tip = x => `<p class="fb-tip">${I().bulb} ${x}</p>`;
+      if (q.t === 5) return tip(`שיטת היד: סופרים יד אחת, ${o} פעמים: <b dir="ltr">${Array.from({ length: o }, (_, i) => (i + 1) * 5).join(', ')}</b>`);
+      if (q.t === 10) return tip('כפל ב-10: כותבים את המספר ומוסיפים 0 בסוף.');
+      if (q.t === 2) return tip(`כפל ב-2 זה להכפיל: ${o} + ${o}.`);
+      if (q.t === 1) return tip('כפל ב-1: המספר נשאר אותו מספר.');
+      if (q.t === 4) return tip(`מכפילים ומכפילים שוב: <b dir="ltr">${o} → ${2 * o} → ${4 * o}</b>`);
+      if (q.t === 9) return tip(`טריק האצבעות: מקפלים את אצבע ${o}. לפניה ${o - 1} (עשרות), אחריה ${10 - o} (אחדות): <b dir="ltr">${o * 9}</b>`);
+      if (K.TABLES[q.t] && K.TABLES[q.t].split) { const p = K.TABLES[q.t].split; return tip(`מפרקים: <b dir="ltr">${p}×${o} + ${q.t - p}×${o} = ${p * o} + ${(q.t - p) * o} = ${q.t * o}</b>`); }
       return '';
     }
 
@@ -158,12 +173,24 @@
     }
 
     function finish() {
-      const s = sess.summary();
-      const res = K.store.finishSession(t, s.ok, s.n);
-      const perfect = s.ok === s.n;
-      const coins = 5 + s.ok * 2 + (perfect ? 5 : 0) + res.newStars * 5 + (res.streak.isNew ? 2 : 0);
-      K.store.addCoins(coins);
-      K.lastResult = { t, ok: s.ok, n: s.n, coins, hardFacts: s.hardFacts, stars: res.stars, newStars: res.newStars, starsBefore, streak: res.streak, levelUp: res.level > levelBefore, levelDown: res.level < levelBefore, level: res.level };
+      const s = sess.summary(), acc = s.n ? s.ok / s.n : 0, perfect = s.ok === s.n;
+      const bonusGame = Math.random() < (mode === 'daily' ? 1 : .45);
+      if (mode === 'table') {
+        const res = K.store.finishSession(t, s.ok, s.n);
+        const coins = 5 + s.ok * 2 + (perfect ? 5 : 0) + res.newStars * 5 + (res.streak.isNew ? 2 : 0);
+        K.store.addCoins(coins);
+        K.lastResult = { mode, t, ok: s.ok, n: s.n, coins, hardFacts: s.hardFacts, hardPairs: s.hardPairs, stars: res.stars, newStars: res.newStars, starsBefore, streak: res.streak, levelUp: res.level > levelBefore, levelDown: res.level < levelBefore, level: res.level, bonusGame };
+      } else if (mode === 'daily') {
+        const res = K.store.finishDaily();
+        const coins = 10 + s.ok * 2 + (perfect ? 5 : 0);
+        K.store.addCoins(coins);
+        K.lastResult = { mode, ok: s.ok, n: s.n, coins, hardPairs: s.hardPairs, streak: res.streak, daily: res.daily, bonusGame };
+      } else {
+        const res = K.store.setMedal(area.id, acc), streak = K.store.touchStreak();
+        const coins = 5 + s.ok * 2 + (res.better ? ({ bronze: 10, silver: 20, gold: 30 })[res.medal] : 0);
+        K.store.addCoins(coins);
+        K.lastResult = { mode, area: area.id, ok: s.ok, n: s.n, coins, hardPairs: s.hardPairs, streak, medal: res.medal, better: res.better, newPiece: res.newPiece, bonusGame: false };
+      }
       go('result');
     }
 
@@ -176,6 +203,7 @@
     };
     document.addEventListener('keydown', onKey);
     $('#x', root).onclick = () => { if (sess.results.length === 0 || confirm('לצאת מהתרגול? מה שענית עד עכשיו נשמר.')) go('map'); };
+    if (mode !== 'table') $('.flow-bar', root).insertAdjacentHTML('beforeend', `<span class="mode-chip">${mode === 'daily' ? '📅 תרגול יומי' : '🏆 אתגר האלופה'}</span>`);
     K._q = () => q;
     drawQuestion();
     return () => document.removeEventListener('keydown', onKey);
@@ -183,39 +211,56 @@
 
   route('result', { chrome: 'flow', render(root) {
     const r = K.lastResult; if (!r) return go('map', true);
-    const st = K.store.state, c = K.CHARACTERS[st.char] || K.CHARACTERS.bear, T = K.TABLES[r.t];
+    const st = K.store.state, c = K.CHARACTERS[st.char] || K.CHARACTERS.bear;
+    const mode = r.mode || 'table', area = r.area ? K.AREAS.find(a => a.id === r.area) : null;
+    const color = mode === 'table' ? K.TABLES[r.t].color : mode === 'daily' ? '#2fc79a' : '#ffb81f';
     const acc = r.n ? r.ok / r.n : 0;
     const line = [...K.MSG.sessionEnd].reverse().find(([th]) => acc >= th)[1];
     const mood = acc >= 0.5 ? 'cheer' : 'happy';
-    const cheapest = Math.min(...K.SHOP.filter(i => !st.owned.includes(i.id)).map(i => i.price), Infinity);
-    const R = 54, C = 2 * Math.PI * R;
-    root.style.setProperty('--tc', T.color);
+    const cheapest = Math.min(...K.SHOP.filter(i => !st.owned.includes(i.id) && K.store.unlocked(i)).map(i => i.price), Infinity);
+    const R = 54, C = 2 * Math.PI * R, M = r.medal ? K.MEDALS[r.medal] : null;
+    let mid;
+    if (mode === 'table') mid = `<div class="res-card"><span class="rc-stars">${K.ui.starsRow(r.stars, 3)}</span><b>טבלת ה-${r.t}</b><small>${r.newStars ? 'כוכב חדש!' : r.stars >= 3 ? 'שלושה כוכבים!' : 'כוכבים בטבלה'}</small></div>`;
+    else if (mode === 'daily') mid = `<div class="res-card"><span class="rc-ic big-e">📅</span><b>${r.daily}</b><small>${r.daily > 1 ? 'ימי תרגול יומי ברצף' : 'תרגול יומי ראשון ברצף'}</small></div>`;
+    else mid = `<div class="res-card"><span class="rc-ic big-e">${M ? M.emoji : '🏆'}</span><b>${M ? 'מדליית ' + M.name : 'עוד ניסיון'}</b><small>${area.name}</small></div>`;
+    const title = mode === 'champ' ? (M ? (r.medal === 'gold' ? 'אלופה אמיתית!' : 'כל הכבוד, אלופה!') : 'כמעט מדליה!') : acc === 1 ? 'מושלם!' : acc >= .5 ? 'כל הכבוד!' : 'עבודה יפה!';
+    const sub = mode === 'champ'
+      ? (M ? `זכית במדליית ${M.name} באתגר של ${area.name}!${r.newPiece ? ` קיבלת חלק חדש לכתר: ${area.piece.name}!` : ''}` : `צריך ${Math.ceil(K.MEDALS.bronze.min * r.n)} תשובות נכונות למדליה. בואי נחזק קצת ונחזור לאתגר!`)
+      : mode === 'daily' ? `סיימת את התרגול היומי! ${line}` : line;
+    const pairs = (r.hardPairs || []).slice(0, 6);
+    const bonus = r.bonusGame ? (mode === 'daily' ? 'memory' : K.engine.pick(['balloon', 'memory', 'race'])) : null;
+    const scope = mode === 'table' ? String(r.t) : mode === 'champ' ? 'area-' + r.area : 'all';
+    const G = bonus ? K.GAMES[bonus] : null;
+    root.style.setProperty('--tc', color);
     root.innerHTML = `<div class="result">
       <div class="res-char">${K.art.char(c.id, mood)}</div>
-      <h2 class="h-big">${acc === 1 ? 'מושלם!' : acc >= .5 ? 'כל הכבוד!' : 'עבודה יפה!'}</h2>
-      <p class="sub">${line}</p>
-      <div class="res-ring"><svg viewBox="0 0 130 130"><circle cx="65" cy="65" r="${R}" class="rr-bg"/><circle cx="65" cy="65" r="${R}" class="rr-fg" id="rr" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><div class="rr-txt"><b>${r.ok}</b><small>מתוך ${r.n}</small><em>נכון בניסיון ראשון</em></div></div>
+      <h2 class="h-big">${title}</h2>
+      <p class="sub">${sub}</p>
+      ${mode === 'champ' && M ? `<div class="medal-big ${r.medal}" aria-hidden="true">${M.emoji}</div>` : `<div class="res-ring"><svg viewBox="0 0 130 130"><circle cx="65" cy="65" r="${R}" class="rr-bg"/><circle cx="65" cy="65" r="${R}" class="rr-fg" id="rr" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg><div class="rr-txt"><b>${r.ok}</b><small>מתוך ${r.n}</small><em>נכון בניסיון ראשון</em></div></div>`}
+      ${mode === 'champ' && r.newPiece ? `<div class="res-crown">${K.art.crown(K.store.crownPieces(), r.area)}<small>${K.store.crownPieces()} מתוך ${K.AREAS.length} חלקי הכתר</small></div>` : ''}
       <div class="res-cards">
         <div class="res-card"><span class="rc-ic">${I().coin}</span><b dir="ltr">+<span id="cc">0</span></b><small>מטבעות לבית</small></div>
-        <div class="res-card"><span class="rc-stars">${K.ui.starsRow(r.stars, 3)}</span><b>טבלת ה-${r.t}</b><small>${r.newStars ? 'כוכב חדש!' : r.stars >= 3 ? 'שלושה כוכבים!' : 'כוכבים בטבלה'}</small></div>
+        ${mid}
         <div class="res-card"><span class="rc-ic">${I().flame}</span><b>${r.streak.count}</b><small>${r.streak.isNew ? (r.streak.count > 1 ? 'ימים ברצף!' : 'התחלת רצף חדש!') : 'ימים ברצף'}</small></div>
       </div>
       ${r.levelUp ? `<p class="res-note up">⬆️ עלית רמה בטבלת ה-${r.t}! מעכשיו יהיו שאלות קצת יותר מאתגרות.</p>` : ''}
       ${r.levelDown ? `<p class="res-note">נאט קצת: בסבב הבא יהיו עוד רמזים ותמונות שיעזרו.</p>` : ''}
-      ${r.hardFacts.length ? `<div class="res-weak"><b>כדאי לחזק:</b> ${r.hardFacts.map(m => `<span class="fact-chip" dir="ltr">${r.t} × ${m}</span>`).join('')}<small>הם יחזרו בתרגול הבא, כמה שצריך.</small></div>` : ''}
+      ${pairs.length ? `<div class="res-weak"><b>כדאי לחזק:</b> ${pairs.map(p => `<span class="fact-chip" dir="ltr">${p.t} × ${p.m}</span>`).join('')}<small>הם יחזרו בתרגול הבא, כמה שצריך.</small></div>` : ''}
+      ${G ? `<button class="bonus-card" id="bonus"><span class="bc-emoji" aria-hidden="true">${G.emoji}</span><span><b>משחק בונוס: ${G.name}</b><small>${G.blurb}</small></span><span class="btn-ic">${I().back}</span></button>` : ''}
       <div class="res-actions">
-        <button class="btn btn-primary btn-xl" id="again">עוד סבב</button>
+        <button class="btn btn-primary btn-xl" id="again">${mode === 'champ' ? 'עוד ניסיון באתגר' : mode === 'daily' ? 'חזרה למפה' : 'עוד סבב'}</button>
         ${st.coins >= cheapest ? `<button class="btn btn-secondary btn-lg" id="shop">🛍️ לקשט את הבית</button>` : ''}
-        <button class="btn btn-ghost" id="map">חזרה למפה</button>
+        ${mode === 'daily' ? '' : `<button class="btn btn-ghost" id="map">חזרה למפה</button>`}
       </div></div>`;
-    $('#again', root).onclick = () => go('practice/' + r.t);
+    $('#again', root).onclick = () => go(mode === 'table' ? 'practice/' + r.t : mode === 'champ' ? 'practice/champ-' + r.area : 'map');
     const sh = $('#shop', root); if (sh) sh.onclick = () => go('home');
-    $('#map', root).onclick = () => go('map');
-    setTimeout(() => { $('#rr', root).style.strokeDashoffset = C * (1 - acc); }, 100);
+    const mp = $('#map', root); if (mp) mp.onclick = () => go('map');
+    const bn = $('#bonus', root); if (bn) bn.onclick = () => go(`game/${bonus}/${scope}`);
+    const rr = $('#rr', root); if (rr) setTimeout(() => { rr.style.strokeDashoffset = C * (1 - acc); }, 100);
     K.ui.countUp($('#cc', root), r.coins, 1000);
-    if (acc >= .5) setTimeout(() => confetti({ y: innerHeight * .3, count: acc === 1 ? 120 : 70, power: 1.2, stars: true }), 250);
-    A(r.newStars ? 'fanfare' : acc >= .5 ? 'star' : 'right');
-    if (r.newStars) setTimeout(() => { A('star'); }, 900);
+    if (acc >= .5) setTimeout(() => confetti({ y: innerHeight * .3, count: acc === 1 || r.medal === 'gold' ? 120 : 70, power: 1.2, stars: true }), 250);
+    A(r.newStars || r.better ? 'fanfare' : acc >= .5 ? 'star' : 'right');
+    if (r.newStars || r.newPiece) setTimeout(() => { A('star'); }, 900);
     K.store.save();
   } });
 })();
