@@ -15,6 +15,7 @@ K.store = (function () {
     games: {},             // kind -> {plays, best}
     home: { place: {}, view: 'yard' },   // itemId -> slot index (slot-based items)
     friends: [],           // area ids whose friend was met
+    lastWorld: 'kefel',    // 'kefel' | 'garden' — last world map for the מפה tab
     geo: { units: {}, facts: {}, medals: {}, friends: [], history: [] }  // גן הצורות (separate from kefel crown)
   });
   let state = defaults();
@@ -28,6 +29,7 @@ K.store = (function () {
   function migrate() {
     const d = defaults();
     ['medals', 'daily', 'games', 'home', 'friends'].forEach(k => { if (!state[k] || typeof state[k] !== 'object') state[k] = d[k]; });
+    if (state.lastWorld !== 'garden') state.lastWorld = 'kefel';
     if (!state.home.place) state.home.place = {};
     if (!Array.isArray(state.owned)) state.owned = [];
     /* geometry region: always ensure a complete state.geo without touching kefel medals/crown */

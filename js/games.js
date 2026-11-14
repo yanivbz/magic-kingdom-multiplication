@@ -72,7 +72,7 @@ K.GAMES = {
       A(rec ? 'fanfare' : 'star'); setTimeout(() => confetti({ y: innerHeight * .3, count: 80, stars: true }), 200);
       $('#again', root).onclick = () => K.ui.render();
       $('#other', root).onclick = () => go('games/' + (scope || 'all'));
-      $('#map', root).onclick = () => go('map');
+      $('#map', root).onclick = () => go(K.mission.worldPath());
     }
     const ctx = { body, stat, end, tables, scope, setCleanup: f => { cleanup = f; } };
     GAMES[kind](ctx);

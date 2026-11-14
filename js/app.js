@@ -1,7 +1,7 @@
 /* Boot: first route, service worker, install prompt. */
 (function () {
   const st = K.store.state;
-  if (!location.hash || location.hash === '#') location.replace(st.onboarded ? '#/map' : '#/welcome');
+  if (!location.hash || location.hash === '#') location.replace(st.onboarded ? '#/hub' : '#/welcome');
   K.ui.render();
   document.addEventListener('pointerdown', () => K.audio.unlock(), { once: true });
 

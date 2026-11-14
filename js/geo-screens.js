@@ -31,24 +31,16 @@
   }
 
   route('garden', { chrome: 'tabs', render(root) {
-    const st = S(), c = chr(), g = region(), first = K.geoStore.meet();
+    K.mission.setWorld('garden');
+    const st = S(), c = chr(), g = region();
+    K.geoStore.meet();
+    const mission = K.mission.gardenNext();
     const medal = K.geoStore.geo().medals.garden;
     const M = medal ? K.MEDALS[medal] : null;
     const units = K.GEO.UNITS;
     root.innerHTML = `<div class="garden">
-      <div class="garden-head">
-        <button class="btn btn-secondary" id="backMap">חזרה למפת הממלכה</button>
-        <div class="coin-pill">${I().coin}<b>${st.coins}</b></div>
-      </div>
       ${K.geoArt.gardenBanner()}
-      <div class="friend card garden-friend">
-        <div class="friend-top"><span class="friend-e" aria-hidden="true">${g.friend.emoji}</span><div><small>${g.emoji} ${g.name}</small><b>${g.friend.name}</b></div></div>
-        ${K.ui.bubble(g.friend.line)}
-      </div>
-      <div class="mission card">
-        <div class="mission-top"><div class="mission-char">${K.art.char(c.id, 'happy')}</div>${K.ui.bubble(first ? 'ברוכה הבאה לגן הצורות! נתחיל מזוויות — זה הנושא שהכי כדאי לחזק.' : 'בואי נמשיך עם הזוויות, או ננסה את אתגר האלופה של הגן.')}</div>
-        <button class="btn btn-primary btn-lg" id="mission">${K.geoStore.ustate('angles').lesson ? 'לתרגול זוויות' : 'לשיעור הזוויות'}</button>
-      </div>
+      ${K.mission.nowCard(mission, c)}
       <div class="garden-units" role="list">
         ${units.map((u, i) => {
           const ts = K.geoStore.ustate(u.id);
@@ -69,8 +61,7 @@
         <button class="btn btn-primary" id="champ">🏆 לאתגר!</button>
       </div>
     </div>`;
-    $('#backMap').onclick = () => { A('pop'); go('map'); };
-    $('#mission').onclick = () => { A('pop'); const ts = K.geoStore.ustate('angles'); go(ts.lesson ? 'geo-practice/angles' : 'geo-lesson/angles'); };
+    $('#mission').onclick = () => { A('pop'); K.mission.start(mission); };
     $('#champ').onclick = () => { A('pop'); go('geo-practice/champ'); };
     $$('.gunit', root).forEach(b => b.onclick = () => { A('pop'); unitSheet(b.dataset.id); });
   } });

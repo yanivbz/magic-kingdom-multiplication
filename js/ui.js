@@ -27,7 +27,7 @@ K.ui = (function () {
     const st = K.store.state;
     let { name, args } = parse();
     if (!st.onboarded && !['welcome', 'choose', 'story'].includes(name)) name = 'welcome';
-    if (st.onboarded && !routes[name]) name = 'map';
+    if (st.onboarded && !routes[name]) name = 'hub';
     if (!routes[name]) name = 'welcome';
     const def = routes[name];
     if (cleanup) { try { cleanup(); } catch (e) { console.error(e); } cleanup = null; }
@@ -63,8 +63,15 @@ K.ui = (function () {
     $('#hudChar').onclick = () => { K.audio.play('pop'); go('home'); };
   }
   function updateTabs(active) {
-    const T = [['map', 'מפה', I().map], ['explorer', 'לוח הכפל', I().grid], ['games', 'משחקים', I().game], ['intro', 'מה זה כפל?', I().book], ['home', 'הבית שלי', I().home]];
-    tabs.innerHTML = T.map(([id, label, ic]) => `<a href="#/${id}" class="tab${active === id ? ' on' : ''}" ${active === id ? 'aria-current="page"' : ''}>${ic}<span>${label}</span></a>`).join('');
+    const mapPath = (K.mission && K.mission.worldPath()) || 'map';
+    const mapOn = active === 'map' || active === 'garden';
+    const T = [
+      ['hub', 'בית', I().hub || I().home, active === 'hub'],
+      [mapPath, 'מפה', I().map, mapOn],
+      ['games', 'משחקים', I().game, active === 'games'],
+      ['home', 'הבית שלי', I().home, active === 'home']
+    ];
+    tabs.innerHTML = T.map(([id, label, ic, on]) => `<a href="#/${id}" class="tab${on ? ' on' : ''}" ${on ? 'aria-current="page"' : ''}>${ic}<span>${label}</span></a>`).join('');
     $$('.tab', tabs).forEach(a => a.addEventListener('click', () => K.audio.play('tap')));
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

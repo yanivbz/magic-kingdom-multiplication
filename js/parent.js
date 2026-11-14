@@ -23,7 +23,7 @@ K.parent = (function () {
   const boxTxt = f => (f.seen && f.box === 0) ? 'לחזק' : ['חדש', 'לחזק', 'מתחיל להיות מוכר', 'כמעט', 'טוב', 'שולטת'][f.box] || '';
 
   route('parent', { chrome: 'flow', render(root) {
-    if (Date.now() > okUntil) { go('map', true); setTimeout(gate, 50); return; }
+    if (Date.now() > okUntil) { go('hub', true); setTimeout(gate, 50); return; }
     const st = K.store.state;
     const allFacts = [];
     K.readyTables().forEach(t => { for (let m = 1; m <= 10; m++) { const f = K.store.fact(t, m); if (f.seen) allFacts.push({ t, m, f }); } });
@@ -62,7 +62,7 @@ K.parent = (function () {
           <div class="p-actions"><button class="btn btn-secondary" id="exp">ייצוא נתונים</button><button class="btn btn-danger" id="reset">איפוס כל ההתקדמות</button></div>
         </section>
       </div></div>`;
-    $('#x', root).onclick = () => go('map');
+    $('#x', root).onclick = () => go('hub');
     $('#sSound', root).onchange = e => { st.settings.sound = e.target.checked; K.store.save(); };
     $('#sAuto', root).onchange = e => { st.settings.autoRead = e.target.checked; K.store.save(); if (!e.target.checked && K.speech) K.speech.stop(); };
     (function voiceNote() {
