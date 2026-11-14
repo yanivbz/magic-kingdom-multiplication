@@ -67,7 +67,7 @@
 .guide svg * { animation: none !important; }
 @media (max-width: 899px) {
   .map-layout { grid-template-columns: 1fr; gap: 14px; } .map-side { position: static; }
-  .week, .legend { display: none; } .mission { padding: 14px; }
+  .map-side .week, .map-side .legend, .map-side .order { display: none; } .mission, .now-card { padding: 14px; }
 }
 
 .tsheet { text-align: center; display: grid; gap: 10px; justify-items: center; }
@@ -229,3 +229,39 @@
 
 .greet { font-size: clamp(26px, 7vw, 38px); font-weight: 800; color: var(--pink); margin: 6px 0 -2px; animation: bubbleIn .6s var(--spring) both; }
 .logo-omer { font-size: clamp(34px, 10vw, 62px); } .logo-omer span { font-size: 1.15em; color: var(--pink); margin-bottom: 0; display: inline; }
+
+
+/* ---------- home hub + progress ---------- */
+.hub { display: grid; gap: 18px; justify-items: stretch; max-width: 640px; margin: 0 auto; width: 100%; }
+.hub-hello { display: flex; align-items: center; gap: 14px; }
+.hub-char { width: 110px; flex: none; }
+.hub-hi h1 { font-size: clamp(26px, 7vw, 36px); margin: 0 0 4px; }
+.hub-hi p { margin: 0; color: var(--muted); font-size: 18px; font-weight: 600; }
+.now-card { display: grid; gap: 12px; justify-items: center; text-align: center; padding: 18px 16px; border: 3px solid var(--violet-l); }
+.now-label { margin: 0; font-size: 15px; letter-spacing: .02em; color: var(--violet-d); }
+.now-card .btn { width: 100%; }
+.now-card .mission-title { color: var(--muted); }
+.worlds { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.world-btn { display: flex; align-items: center; gap: 14px; text-align: start; border: 0; cursor: pointer; border-radius: 24px; padding: 16px 18px; min-height: 92px; color: #fff; box-shadow: var(--shadow); transition: transform .15s var(--spring); }
+.world-btn:active { transform: scale(.97); }
+.world-btn.kefel { background: linear-gradient(135deg, #8b5cff, #5b34d6); }
+.world-btn.garden { background: linear-gradient(135deg, #ff8ac4, #ff5fa2); }
+.wb-e { font-size: 42px; line-height: 1; flex: none; }
+.wb-t { display: grid; gap: 2px; } .wb-t b { font-size: 22px; font-weight: 800; } .wb-t small { font-size: 15px; opacity: .92; font-weight: 600; }
+.hub > #toProg { width: 100%; }
+.map-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-btn { flex: 1 1 30%; min-width: 96px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; background: #fff; color: var(--violet-d); font: inherit; font-weight: 700; font-size: 14px; padding: 10px 8px; border-radius: 16px; box-shadow: var(--shadow-s); cursor: pointer; }
+.tool-btn svg { width: 18px; height: 18px; }
+.progress-page { display: grid; gap: 16px; max-width: 720px; margin: 0 auto; width: 100%; }
+.prog-title { margin: 0 0 2px; font-size: clamp(24px, 6vw, 32px); text-align: center; }
+.prog-grid { display: grid; gap: 14px; }
+.wand-e { font-size: 42px; flex: none; }
+.friend-met { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.fchip { background: var(--violet-l); color: var(--violet-d); font-weight: 700; font-size: 14px; padding: 4px 10px; border-radius: 99px; }
+.prog-links { display: grid; gap: 10px; } .prog-links > b { font-size: 17px; }
+@media (min-width: 700px) {
+  .worlds { grid-template-columns: 1fr 1fr; }
+  .hub-char { width: 130px; }
+  .prog-grid { grid-template-columns: 1fr 1fr; }
+  .prog-grid .week, .prog-grid .order, .prog-grid .friend, .prog-grid .prog-links { grid-column: 1 / -1; }
+}
