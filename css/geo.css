@@ -1,0 +1,57 @@
+/* גן הצורות — geometry region, lesson, and practice. */
+.node.garden-portal { --nc: #ff6fae; width: 18%; z-index: 3; }
+.node.garden-portal .node-num { font-size: 9cqw; }
+.garden-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.garden-card .gc-e { font-size: 32px; line-height: 1; }
+.garden-card .btn { flex: none; }
+
+.garden { display: grid; gap: 16px; max-width: 640px; margin: 0 auto; }
+.garden-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.garden-banner { width: 100%; height: auto; border-radius: 24px; box-shadow: var(--shadow-s); display: block; }
+.garden-friend .bubble { margin-top: 8px; }
+.garden-units { display: grid; gap: 10px; }
+.gunit { display: flex; align-items: center; gap: 12px; text-align: start; background: #fff; border-radius: 20px; padding: 12px 14px; box-shadow: var(--shadow-s); border: 3px solid color-mix(in srgb, var(--nc) 45%, #fff); }
+.gunit .gu-e { font-size: 32px; width: 52px; height: 52px; display: grid; place-items: center; background: color-mix(in srgb, var(--nc) 22%, #fff); border-radius: 16px; flex: none; }
+.gunit .gu-n { flex: 1; display: grid; gap: 2px; } .gunit .gu-n b { font-size: 18px; font-weight: 800; } .gunit .gu-n small { color: var(--muted); }
+.gunit .gu-stars { display: flex; }
+.gunit.locked { filter: saturate(.35); opacity: .85; border-color: var(--line); }
+.gunit.locked .gu-lock { display: flex; align-items: center; gap: 4px; background: var(--violet-l); color: var(--violet-d); font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 99px; }
+.gunit.locked .gu-lock svg { width: 16px; height: 16px; }
+.gunit:not(.locked):hover { transform: translateY(-2px); }
+.garden-champ { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: #fff; border-radius: 22px; padding: 14px; box-shadow: var(--shadow-s); }
+.garden-champ > div { flex: 1; min-width: 180px; display: grid; gap: 2px; }
+.garden-champ .btn { flex: none; }
+
+.geo-lesson .stage, .geo-practice .geo-fig, .geo-stage { width: 100%; max-width: 360px; margin: 0 auto; }
+.geo-ang, .geo-shape, .geo-world { display: block; max-height: min(58vh, 360px); overflow: visible; }
+.geo-handle { touch-action: none; }
+.geo-dial { display: grid; justify-items: center; gap: 6px; }
+.geo-dial-cap { font-weight: 800; font-size: 22px; min-height: 1.4em; text-align: center; }
+.geo-row { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.geo-row.two .geo-fig { flex: 1 1 140px; max-width: 240px; text-align: center; }
+.geo-samples, .geo-compare { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; }
+.geo-compare { grid-template-columns: 1fr 1fr; }
+.geo-compare.mini { max-width: 420px; margin: 0 auto; }
+.geo-samp, .geo-cmp { background: #fff; border-radius: 20px; padding: 8px 6px 10px; border: 3px solid var(--line); position: relative; }
+.geo-samp.on, .geo-cmp.right { border-color: var(--mint); box-shadow: 0 0 0 4px var(--mint-l); }
+.geo-cmp.miss, .geo-samp.miss, .choice.miss { border-color: var(--red); }
+.geo-samp-l { position: absolute; top: 6px; inset-inline-start: 8px; background: var(--violet); color: #fff; font-weight: 800; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; z-index: 1; }
+.geo-kinds { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.geo-kinds .choice { display: grid; gap: 2px; padding: 12px 10px; border-radius: 18px; border: 3px solid color-mix(in srgb, var(--kc) 55%, #fff); }
+.geo-kinds .choice b { font-size: 22px; color: var(--kc); }
+.geo-kinds .choice small { color: var(--muted); font-weight: 600; }
+.geo-hint .geo-paper-wrap, .geo-explain .geo-paper-wrap { max-width: 240px; margin: 0 auto; }
+.geo-hot { cursor: pointer; }
+.geo-hot.on circle:last-child { fill: #ff6fae; }
+.geo-hot.ok circle:last-child { fill: #2fc79a; }
+.geo-hot.bad circle:last-child { fill: #ff5a6e; }
+.geo-hot.miss circle:last-child { fill: #ffc41f; }
+.geo-practice .answers { margin-top: 8px; }
+@media (max-width: 520px) {
+  .geo-samples { grid-template-columns: 1fr 1fr 1fr; }
+  .geo-kinds { grid-template-columns: 1fr 1fr; }
+  .gunit { padding: 10px 12px; }
+}
+@media (max-width: 380px) {
+  .geo-samples { grid-template-columns: 1fr; }
+}

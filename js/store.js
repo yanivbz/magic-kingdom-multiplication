@@ -14,7 +14,8 @@ K.store = (function () {
     daily: { last: null, count: 0, best: 0 },
     games: {},             // kind -> {plays, best}
     home: { place: {}, view: 'yard' },   // itemId -> slot index (slot-based items)
-    friends: []            // area ids whose friend was met
+    friends: [],           // area ids whose friend was met
+    geo: { units: {}, facts: {}, medals: {}, friends: [], history: [] }  // גן הצורות (separate from kefel crown)
   });
   let state = defaults();
   try {
@@ -29,6 +30,14 @@ K.store = (function () {
     ['medals', 'daily', 'games', 'home', 'friends'].forEach(k => { if (!state[k] || typeof state[k] !== 'object') state[k] = d[k]; });
     if (!state.home.place) state.home.place = {};
     if (!Array.isArray(state.owned)) state.owned = [];
+    /* geometry region: always ensure a complete state.geo without touching kefel medals/crown */
+    const gd = { units: {}, facts: {}, medals: {}, friends: [], history: [] };
+    if (!state.geo || typeof state.geo !== 'object' || Array.isArray(state.geo)) state.geo = gd;
+    else {
+      ['units', 'facts', 'medals'].forEach(k => { if (!state.geo[k] || typeof state.geo[k] !== 'object' || Array.isArray(state.geo[k])) state.geo[k] = {}; });
+      if (!Array.isArray(state.geo.friends)) state.geo.friends = [];
+      if (!Array.isArray(state.geo.history)) state.geo.history = [];
+    }
     const legacy = { tree: 0, fountain: 1, swing: 2, doghouse: 3, unicorn: 4 };
     state.owned.forEach(id => { if (legacy[id] != null && state.home.place[id] == null) state.home.place[id] = legacy[id]; });
     state.v = 2;

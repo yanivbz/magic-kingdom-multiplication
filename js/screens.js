@@ -118,6 +118,7 @@
           <small class="mission-title">${mission.title}</small>
         </div>
         <div class="friend card"><div class="friend-top"><span class="friend-e" aria-hidden="true">${fa.friend.emoji}</span><div><small>${fa.emoji} ${fa.name}</small><b>${fa.friend.name}</b></div></div>${K.ui.bubble(fa.friend.line)}</div>
+        <div class="garden-card card" id="gardenCard"><span class="gc-e" aria-hidden="true">🌸</span><div><b>גן הצורות</b><small>קשתית מחכה בגן ללמוד זוויות!</small></div><button class="btn btn-secondary" id="toGarden">לגן</button></div>
         <div class="crown-card card" id="crownCard">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${K.store.crownPieces()} מתוך ${K.AREAS.length} חלקים · כל מדליה באתגר האלופה של אזור מוסיפה חלק</small></div></div>
         <div class="order card"><h3>הדרך המומלצת</h3><div class="order-row" dir="rtl">${K.ORDER.map(t => `<span class="oc${K.store.tstate(t).stars >= 2 ? ' done' : ''}${t === recTable() ? ' now' : ''}" style="--nc:${K.TABLES[t].color}">${t}</span>`).join('')}</div><small class="muted">הכול פתוח! זה רק הסדר שהכי קל ללמוד בו.</small></div>
         <div class="week card">${weekStrip()}</div>
@@ -129,13 +130,20 @@
           ${mission.node === 'gate' ? `<span class="guide">${K.ui.avatar(c.id)}<em>התחילי כאן!</em></span>` : ''}</button>
         ${K.TABLE_LIST.map(nodeFor).join('')}
         ${K.AREAS.map(champFor).join('')}
+        <button class="node garden-portal open" style="${pct(K.geoArt.PORTAL)};--nc:#ff6fae" data-garden="1" aria-label="גן הצורות: זוויות וצורות">
+          <span class="node-num" aria-hidden="true">🌸</span><span class="node-label">גן הצורות</span>
+        </button>
       </div></section>
     </div>`;
     $('#mission').onclick = () => { A('pop'); startMission(mission); };
     const dl = $('#daily'); if (dl) dl.onclick = () => { A('pop'); go('practice/daily'); };
     $('#crownCard').onclick = () => go('home');
+    const goGarden = () => { A('pop'); go('garden'); };
+    const gc = $('#gardenCard'); if (gc) gc.onclick = goGarden;
+    const tg = $('#toGarden'); if (tg) tg.onclick = ev => { ev.stopPropagation(); goGarden(); };
     $$('.node', root).forEach(n => n.onclick = () => {
       A('pop');
+      if (n.dataset.garden) return go('garden');
       if (n.dataset.area) return areaSheet(n.dataset.area);
       const t = n.dataset.t;
       if (t === 'gate') return go('intro');
