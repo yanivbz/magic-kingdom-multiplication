@@ -1,10 +1,11 @@
 /* Offline-first service worker. Bump VERSION when any asset changes. */
-const VERSION = 'kefel-v2.0.0';
+const VERSION = 'kefel-v2.1.0';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
-  'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css',
-  'js/data.js', 'js/store.js', 'js/audio.js', 'js/engine.js', 'js/art.js', 'js/ui.js', 'js/screens.js',
-  'js/lesson.js', 'js/practice.js', 'js/games.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js', 'js/speech.js', 'js/app.js',
+  'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css', 'css/geo.css',
+  'js/data.js', 'js/geo-data.js', 'js/store.js', 'js/audio.js', 'js/engine.js', 'js/geo-engine.js', 'js/art.js', 'js/geo-art.js', 'js/ui.js', 'js/screens.js',
+  'js/lesson.js', 'js/practice.js', 'js/games.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js',
+  'js/geo-screens.js', 'js/geo-lesson.js', 'js/geo-practice.js', 'js/speech.js', 'js/app.js',
   'fonts/rubik-hebrew-wght-normal.woff2', 'fonts/rubik-latin-wght-normal.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ];
