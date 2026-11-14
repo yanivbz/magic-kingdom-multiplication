@@ -27,10 +27,12 @@
   }
   const NOUNS = { // singular nouns we use after a number ("שורה אחת"); plurals are detected by their ending
     שורה: 'f', קבוצה: 'f', צנצנת: 'f', כפית: 'f', קפיצה: 'f', שקית: 'f', עוגייה: 'f', אצבע: 'f', יד: 'f', מגש: 'm', עיגול: 'm', כוכב: 'm', חבר: 'm', בלון: 'm',
-    ארנב: 'm', סל: 'm', גזר: 'm', דג: 'm', תפוח: 'm', פרח: 'm', תות: 'm', אשכול: 'm', אקווריום: 'm', מטבע: 'm', יום: 'm', פעם: 'f', מספר: 'm'
+    ארנב: 'm', סל: 'm', גזר: 'm', דג: 'm', תפוח: 'm', פרח: 'm', תות: 'm', אשכול: 'm', אקווריום: 'm', מטבע: 'm', יום: 'm', פעם: 'f', מספר: 'm',
+    זווית: 'f', קרן: 'f', צלע: 'f', פינה: 'f', קשת: 'f', נקודה: 'f',
+    קודקוד: 'm', קו: 'm', משולש: 'm', מרובע: 'm', מלבן: 'm', ריבוע: 'm'
   };
   const NOT_NOUNS = new Set(['נותנים', 'מקבלים', 'יוצאים', 'מתקבלים', 'מסתיימים', 'אומרים', 'סופרים', 'מוסיפים', 'מחברים', 'שווים', 'קופצים', 'נראים', 'הולכים', 'מופיעים', 'באים', 'עושים']);
-  const FEM_EXC = new Set(['פעמים', 'שנים', 'שעות', 'דקות', 'ידיים']);
+  const FEM_EXC = new Set(['פעמים', 'שנים', 'שעות', 'דקות', 'ידיים', 'זוויות', 'קרניים', 'פינות', 'צלעות', 'מעלות']);
   const MASC_EXC = new Set(['מגשי', 'סלי', 'מטבעות', 'ימים', 'חודשים', 'שבועות']);
   /* gender of the noun that follows a number; null = no noun → abstract number (feminine, as taught in school) */
   function nounGender(w) {
@@ -61,6 +63,7 @@
     t = t.replace(/[‹›·]/g, ', ');
     t = t.replace(/×/g, ' כפול ').replace(/\s=\s|=/g, ' שווה ').replace(/\s\+\s|\+/g, ' ועוד ').replace(/[−–—]/g, ', ');
     t = t.replace(/(\d+)%/g, '$1 אחוז');
+    t = t.replace(/(\d+)\s*°/g, '$1 מעלות');
     // "ל-5 האקווריומים" → construct form  ("מ-3 האקווריומים" → "משלושת האקווריומים")
     t = t.replace(/([בלמ])-(\d+)\s+ה/g, (m, p, d) => { const n = +d; return n >= 2 && n <= 10 ? p + CONSTRUCT[n] + ' ה' : m; });
     // numbers with an optional one-letter prefix:  ה-5, ב-10, 7
@@ -139,7 +142,7 @@
     { sel: '.method-demo > p', pos: 'float', prio: 0 },
     { sel: '.res-note, .result .sub', pos: 'float', prio: 0 },
     { sel: '.result-msg, .reward-msg', pos: 'float', prio: 0 },
-    { sel: '.daily-txt, .crown-card > div, .crown-row > div > small, .champ-box > div, .mem-help, .order > small, .race-start .muted, .place-bar > span', pos: 'float', prio: 0 }
+    { sel: '.daily-txt, .crown-card > div, .crown-row > div > small, .champ-box > div, .mem-help, .order > small, .race-start .muted, .place-bar > span, .garden-card > div, .gunit .gu-n, .geo-dial-cap', pos: 'float', prio: 0 }
   ];
   const ALLSEL = DEFS.map(d => d.sel).join(',');
   const ROOTS = () => [document.getElementById('screen'), document.getElementById('overlay')].filter(Boolean);
