@@ -57,50 +57,26 @@
         <div class="dots-nav" aria-hidden="true">${slides.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div>
         <div class="story-actions">${i < slides.length - 1
           ? `<button class="btn btn-primary btn-xl" id="nx">הלאה <span class="btn-ic">${I().back}</span></button>`
-          : `<button class="btn btn-primary btn-lg" id="start" style="width:min(100%,420px)">המשימה הראשונה: מה זה כפל?</button><button class="btn btn-ghost" id="skip">אני כבר מכירה, ישר למפה</button>`}</div>
+          : `<button class="btn btn-primary btn-lg" id="start" style="width:min(100%,420px)">המשימה הראשונה: מה זה כפל?</button><button class="btn btn-ghost" id="skip">אני כבר מכירה, ישר להתחיל</button>`}</div>
       </div>`;
       if (i === 2) setTimeout(() => confetti({ y: innerHeight * .35, count: 40, stars: true }), 300);
       const nx = $('#nx'); if (nx) nx.onclick = () => { A('pop'); i++; draw(); };
       const st = $('#start'); if (st) st.onclick = () => { S().onboarded = true; K.store.save(); A('fanfare'); go('intro'); };
-      const sk = $('#skip'); if (sk) sk.onclick = () => { S().onboarded = true; S().introDone = true; K.store.save(); go('map'); };
+      const sk = $('#skip'); if (sk) sk.onclick = () => { S().onboarded = true; S().introDone = true; K.store.save(); go('hub'); };
     }
     draw();
   } });
 
-  /* ---------------- mission recommendation ---------------- */
-  /* recommended next table: first in K.ORDER without 2 stars (nothing is locked, this only guides) */
-  function recTable() {
-    const t = K.ORDER.find(t => K.store.tstate(t).stars < 2);
-    if (t) return t;
-    return K.ORDER.slice().sort((a, b) => K.store.tstate(a).stars - K.store.tstate(b).stars || K.store.tableMastery(a) - K.store.tableMastery(b))[0];
-  }
-  function nextMission() {
-    const st = S();
-    if (!st.introDone) return { kind: 'intro', title: 'המשימה הראשונה: מה זה כפל?', cta: 'יוצאים לדרך', msg: `בואי נתחיל בשער הממלכה ונבין מה זה כפל.`, node: 'gate' };
-    const t = recTable(), ts = K.store.tstate(t);
-    if (!ts.lesson) return { kind: 'lesson', t, title: `שיעור קצר: טבלת ה-${t}`, cta: 'לשיעור', msg: `ההמלצה שלי: טבלת ה-${t}. מוכנה לגלות את הסודות שלה?`, node: t };
-    const weak = weakFacts(t)[0];
-    return { kind: 'practice', t, title: `תרגול: טבלת ה-${t}`, cta: 'מתרגלים', msg: weak ? `כדאי לחזק את ${weak.t} × ${weak.m}. הוא יופיע בתרגול.` : `עוד סבב קצר בטבלת ה-${t} ויש עוד כוכב!`, node: t };
-  }
-  function weakFacts(t) {
-    const out = [];
-    for (let m = 1; m <= 10; m++) { const f = K.store.fact(t, m); if (f.seen && f.bad && f.box < 3) out.push({ t, m, bad: f.bad }); }
-    return out.sort((a, b) => b.bad - a.bad);
-  }
-  function startMission(m) { if (m.kind === 'intro') go('intro'); else if (m.kind === 'lesson') go('lesson/' + m.t); else go('practice/' + m.t); }
-
-  function dailyCard() {
-    const done = K.store.dailyDone(), n = K.store.dailyNow();
-    return `<div class="daily card${done ? ' done' : ''}">
-      <div class="daily-ic" aria-hidden="true">${done ? '✅' : '📅'}</div>
-      <div class="daily-txt"><b>תרגול יומי</b><small>${done ? `סיימת להיום! ${n > 1 ? `${n} ימים ברצף 🔥` : 'מחר ממשיכים את הרצף'}` : `5 דקות על התרגילים שהכי כדאי לחזק${n ? ` · רצף ${n} 🔥` : ''}`}</small></div>
-      <button class="btn ${done ? 'btn-secondary' : 'btn-good'}" id="daily">${done ? 'עוד פעם' : 'מתחילים'}</button></div>`;
-  }
-  const friendArea = () => K.AREAS.find(a => a.tables.includes(recTable())) || K.AREAS[0];
+  /* ---------------- mission helpers (shared with hub in K.mission) ---------------- */
+  const recTable = () => K.mission.recTable();
+  const nextMission = () => K.mission.kefelNext();
+  const startMission = m => K.mission.start(m);
+  const dailyCard = () => K.mission.dailyCard();
 
   /* ---------------- map ---------------- */
   route('map', { chrome: 'tabs', render(root) {
-    const st = S(), c = chr(), mission = nextMission(), P = K.art.NODES, CP = K.art.CHAMP, fa = friendArea();
+    K.mission.setWorld('kefel');
+    const st = S(), c = chr(), mission = nextMission(), P = K.art.NODES, CP = K.art.CHAMP;
     const pct = ([x, y]) => `left:${(x / 400 * 100).toFixed(2)}%;top:${(y / 900 * 100).toFixed(2)}%`;
     const nodeFor = t => {
       const T = K.TABLES[t], ts = K.store.tstate(t), rec = mission.node === t, ord = K.ORDER.indexOf(t) + 1;
@@ -111,17 +87,13 @@
     const champFor = a => { const m = st.medals[a.id]; return `<button class="node champ${m ? ' won ' + m : ''}" style="${pct(CP[a.id])}" data-area="${a.id}" aria-label="אתגר האלופה: ${a.name}${m ? ', מדליית ' + K.MEDALS[m].name : ''}"><span class="champ-f" aria-hidden="true">${a.friend.emoji}</span><span class="champ-m" aria-hidden="true">${m ? K.MEDALS[m].emoji : '🏆'}</span></button>`; };
     root.innerHTML = `<div class="map-layout">
       <aside class="map-side">
+        ${K.mission.nowCard(mission, c)}
         ${st.introDone ? dailyCard() : ''}
-        <div class="mission card">
-          <div class="mission-top"><div class="mission-char">${K.art.char(c.id, 'happy')}</div>${K.ui.bubble(mission.msg)}</div>
-          <button class="btn btn-primary btn-lg" id="mission">${mission.cta}</button>
-          <small class="mission-title">${mission.title}</small>
+        <div class="map-tools">
+          <button class="tool-btn" id="toExp" type="button">${I().grid}<span>לוח הכפל</span></button>
+          <button class="tool-btn" id="toIntro" type="button">${I().book}<span>מה זה כפל?</span></button>
+          <button class="tool-btn" id="toProg" type="button">✨<span>ההתקדמות שלי</span></button>
         </div>
-        <div class="friend card"><div class="friend-top"><span class="friend-e" aria-hidden="true">${fa.friend.emoji}</span><div><small>${fa.emoji} ${fa.name}</small><b>${fa.friend.name}</b></div></div>${K.ui.bubble(fa.friend.line)}</div>
-        <div class="garden-card card" id="gardenCard"><span class="gc-e" aria-hidden="true">🌸</span><div><b>גן הצורות</b><small>קשתית מחכה בגן ללמוד זוויות!</small></div><button class="btn btn-secondary" id="toGarden">לגן</button></div>
-        <div class="crown-card card" id="crownCard">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${K.store.crownPieces()} מתוך ${K.AREAS.length} חלקים · כל מדליה באתגר האלופה של אזור מוסיפה חלק</small></div></div>
-        <div class="order card"><h3>הדרך המומלצת</h3><div class="order-row" dir="rtl">${K.ORDER.map(t => `<span class="oc${K.store.tstate(t).stars >= 2 ? ' done' : ''}${t === recTable() ? ' now' : ''}" style="--nc:${K.TABLES[t].color}">${t}</span>`).join('')}</div><small class="muted">הכול פתוח! זה רק הסדר שהכי קל ללמוד בו.</small></div>
-        <div class="week card">${weekStrip()}</div>
       </aside>
       <section class="map-wrap" aria-label="מפת הממלכה"><div class="map">
         ${K.art.mapScene()}
@@ -130,20 +102,15 @@
           ${mission.node === 'gate' ? `<span class="guide">${K.ui.avatar(c.id)}<em>התחילי כאן!</em></span>` : ''}</button>
         ${K.TABLE_LIST.map(nodeFor).join('')}
         ${K.AREAS.map(champFor).join('')}
-        <button class="node garden-portal open" style="${pct(K.geoArt.PORTAL)};--nc:#ff6fae" data-garden="1" aria-label="גן הצורות: זוויות וצורות">
-          <span class="node-num" aria-hidden="true">🌸</span><span class="node-label">גן הצורות</span>
-        </button>
       </div></section>
     </div>`;
     $('#mission').onclick = () => { A('pop'); startMission(mission); };
     const dl = $('#daily'); if (dl) dl.onclick = () => { A('pop'); go('practice/daily'); };
-    $('#crownCard').onclick = () => go('home');
-    const goGarden = () => { A('pop'); go('garden'); };
-    const gc = $('#gardenCard'); if (gc) gc.onclick = goGarden;
-    const tg = $('#toGarden'); if (tg) tg.onclick = ev => { ev.stopPropagation(); goGarden(); };
+    $('#toExp').onclick = () => { A('pop'); go('explorer'); };
+    $('#toIntro').onclick = () => { A('pop'); go('intro'); };
+    $('#toProg').onclick = () => { A('pop'); go('progress'); };
     $$('.node', root).forEach(n => n.onclick = () => {
       A('pop');
-      if (n.dataset.garden) return go('garden');
       if (n.dataset.area) return areaSheet(n.dataset.area);
       const t = n.dataset.t;
       if (t === 'gate') return go('intro');
@@ -166,16 +133,6 @@
     $('#champ', s.el).onclick = () => { s.close(); go('practice/champ-' + id); };
     $('#ag', s.el).onclick = () => { s.close(); go('games/area-' + id); };
     $$('.a-tables .oc', s.el).forEach(b => b.onclick = () => { s.close(); setTimeout(() => tableSheet(Number(b.dataset.t)), 320); });
-  }
-
-  function weekStrip() {
-    const days = new Set(S().days), out = [], names = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ש׳'];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const k = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      out.push(`<div class="wd${days.has(k) ? ' on' : ''}${i === 0 ? ' today' : ''}"><span>${days.has(k) ? I().flame : ''}</span><small>${names[d.getDay()]}</small></div>`);
-    }
-    return `<h3>השבוע שלי</h3><div class="week-row">${out.join('')}</div><p class="week-note">${K.store.streakNow() ? `רצף של ${K.store.streakNow()} ימים, כל הכבוד!` : 'תרגול אחד היום מתחיל רצף חדש!'}</p>`;
   }
 
   function masteryChips(t) {
