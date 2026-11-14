@@ -189,6 +189,7 @@ K.art = (function () {
       <g transform="translate(330 700)"><ellipse cx="0" cy="6" rx="26" ry="6" fill="#000" opacity=".1"/><rect x="-6" y="-26" width="12" height="32" fill="#8a5a33"/><ellipse cx="0" cy="-30" rx="24" ry="22" fill="#ffc233"/><path d="M-20-34q20 10 40 0" stroke="#d9890a" stroke-width="2" fill="none"/><path d="M-14-24q14 8 28 0" stroke="#d9890a" stroke-width="2" fill="none"/><circle cx="0" cy="-12" r="5" fill="#6b3d1a"/></g>
     </g>
     <g transform="translate(200 822)"><rect x="-70" y="0" width="30" height="62" rx="4" fill="#d9cfff"/><rect x="40" y="0" width="30" height="62" rx="4" fill="#d9cfff"/><path d="M-76 2L-55-22-34 2z" fill="url(#mRoof)"/><path d="M34 2L55-22 76 2z" fill="url(#mRoof)"/><path d="M-40 20Q0-18 40 20" fill="none" stroke="#b9a6ff" stroke-width="10" stroke-linecap="round"/></g>
+    ${K.geoArt ? K.geoArt.mapGardenPatch() : ''}
     <path d="${path}" fill="none" stroke="#fff" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
     <path d="${path}" fill="none" stroke="#fff6dc" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="${path}" fill="none" stroke="#e6c98a" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round"/>
