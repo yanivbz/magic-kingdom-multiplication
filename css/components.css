@@ -199,3 +199,14 @@ html.spk-off .spk { display: none !important; }
 .spk-head { margin-inline-start: auto; }
 @media (prefers-reduced-motion: reduce) { .spk.speaking .sp-w, .spk.loading, .spk.speaking::after { animation: none !important; } .spk.speaking::after { opacity: .5; transform: none; } }
 .tiny { font-size: 14px; margin: -2px 0 10px; }
+
+/* ---------- v2.3 kid-friendly touch targets ---------- */
+.icon-btn { position: relative; }
+.icon-btn::before { content: ''; position: absolute; inset: -5px; border-radius: 20px; } /* ≥ 56px hit area */
+.hud-stats .icon-btn::before { inset: -7px; }
+.chip { min-height: 52px; padding: 8px 18px; }
+.pick { min-height: 56px; }
+.tool-btn { min-height: 56px; font-size: 15px; border-radius: 18px; }
+.tab { min-height: 60px; }
+.tab span { font-size: 14px; }
+.card { border-radius: 26px; }
