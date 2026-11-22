@@ -151,6 +151,7 @@
   route('exam', { chrome: 'tabs', render(root, id) {
     const sub = K.subject(id);
     if (!sub || !sub.examPrep) return go('hub', true);
+    if (sub.examPrep.route) return go(sub.examPrep.route, true);   // subject has a real exam-prep area (e.g. English)
     root.innerHTML = `<div class="soon-page">
       <div class="soon-hero ${sub.cls}"><span class="soon-e" aria-hidden="true">📝</span><h1>הכנה למבחן</h1><p>${sub.emoji} <span${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</span></p></div>
       <div class="card soon-card">${K.ui.bubble('כאן נתכונן למבחנים: תרגול לפי הנושאים ומבחן דמה. האזור הזה יגיע בקרוב! ✨')}<small class="muted">${sub.examPrep.blurb || ''}</small></div>
