@@ -89,7 +89,7 @@ body { background: var(--bg); color: var(--ink); }
 .ec-d { background: var(--acc-exams); }
 
 /* ---------- English pages: one accent (green) ---------- */
-.en-hero, .en-count-card, .en-count-card.past, .t-letters, .t-play,
+.en-hero, .t-letters, .t-play,
 .en-sec.s0, .en-sec.s1, .en-sec.s2, .en-sec.s3 { background: var(--acc-english) !important; }
 .en-sec { box-shadow: 0 4px 0 color-mix(in srgb, var(--acc-english) 70%, #000) !important; }
 .en-prog i, .en-quiz.mock .en-prog i { background: var(--acc-english) !important; }
@@ -108,3 +108,8 @@ body { background: var(--bg); color: var(--ink); }
 .en-exam-banner { background: #fff !important; border: 2px solid var(--acc-english) !important; box-shadow: var(--shadow-s) !important; }
 .eb-cal { background: linear-gradient(180deg, var(--acc-english) 0 26px, #fff 26px) !important; border-color: var(--acc-english) !important; }
 .eb-count, .eb-go { color: var(--acc-english) !important; }
+
+/* exam countdown heroes share the exams accent (amber), same as the מבחנים tile */
+.mx-hero, .en-count-card, .en-count-card.past { background: var(--acc-exams) !important; }
+.mx-cd-n { color: var(--acc-exams) !important; }
+.mx-bb.bb-sheet, .mx-bb.bb-mock { background: #fff; border-color: var(--line-d); box-shadow: 0 4px 0 var(--line-d), var(--shadow-s); }
