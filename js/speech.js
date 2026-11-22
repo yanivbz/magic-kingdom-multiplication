@@ -258,6 +258,24 @@
     if (my === token) { setState(btn, null); curBtn = null; }
   }
   S.say = sayText;
+  /* English (en-US) speech for English Land quiz buttons: K.speech.sayEn('pig') — only ever called from a tap. */
+  S.sayEn = function (text, { rate = 0.8 } = {}) {
+    stop(); const my = token;
+    if (!synth || !text) return Promise.resolve();
+    if (!enVoice) enVoice = pickEnVoice();
+    try { synth.cancel(); synth.resume && synth.resume(); } catch (e) {}
+    return new Promise(res => {
+      const u = new SpeechSynthesisUtterance(text);
+      if (enVoice) u.voice = enVoice;
+      u.lang = (enVoice && enVoice.lang) || 'en-US'; u.rate = rate; u.pitch = 1.05; u.volume = 1;
+      let done = false; const fin = () => { if (!done) { done = true; clearTimeout(to); res(); } };
+      u.onend = fin; u.onerror = fin;
+      const to = setTimeout(fin, 3000 + text.length * 160);
+      if (my !== token) return fin();
+      try { synth.speak(u); } catch (e) { fin(); }
+    });
+  };
+  S.enVoiceName = () => (enVoice ? enVoice.name : null);
   const escA = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   K.speakBtn = function (text, lang) {
     const l = /^en/i.test(lang || '') ? 'en' : 'he';

@@ -90,15 +90,33 @@
     },
     {
       id: 'english', name: 'English Land', short: 'English', emoji: '🔤', cls: 'english', color: '#1fae7a', ltr: true,
-      blurb: 'אותיות, מילים ומשפטים באנגלית', status: 'soon',
+      blurb: 'אותיות, מילים ומשפטים באנגלית', status: 'ready',
+      /* screens live in js/english.js; exam content is data-driven: data/exams/english-2026-11-30.json */
       sections: {
-        learn: { route: 'world/english', status: 'soon' },
-        practice: { status: 'soon' },
+        learn: { route: 'english', status: 'ready' },
+        practice: { route: 'train/english', status: 'ready' },
         games: { status: 'soon' },
-        exam: { route: 'exam/english', status: 'soon' }
+        exam: { route: 'en-exam/english-2026-11-30', status: 'ready' }
       },
-      examPrep: { status: 'soon', blurb: 'תרגול ומבחן דמה באנגלית' },
-      progress() { return null; }
+      examPrep: { status: 'ready', date: '2026-11-30', title: 'מבדק באנגלית', route: 'en-exam/english-2026-11-30', blurb: '10 אותיות, מילים, אות חסרה ומשפטים' },
+      progress() {
+        const e = S().english, x = S().exams && S().exams['english-2026-11-30'];
+        const n = e && Array.isArray(e.learnedLetters) ? e.learnedLetters.length : (K.EN_DEFAULT_LEARNED || []).length;
+        const best = x && x.best ? x.best : 0;
+        return { pct: clamp(best ? best / 100 : n / 26), label: `${n} אותיות${best ? ' · מבדק דמה ' + best + '%' : ''}` };
+      },
+      practiceItems() {
+        const x = S().exams && S().exams['english-2026-11-30'], p = (x && x.practice) || {};
+        const st = id => { const b = p[id] && p[id].best; return b >= 90 ? '⭐⭐⭐' : b >= 70 ? '⭐⭐' : b >= 40 ? '⭐' : 'עוד אין כוכבים'; };
+        const base = 'en-quiz/practice/english-2026-11-30/';
+        return [
+          { emoji: '🎯', title: 'משחק אותיות', sub: 'האותיות שלמדנו: גדולות, קטנות וצלילים', route: 'en-quiz/letters', big: true },
+          { emoji: '🔤', title: 'אותיות (למבדק)', sub: st('letters'), route: base + 'letters', big: true },
+          { emoji: '🖼️', title: 'מילים', sub: st('words'), route: base + 'words', big: true },
+          { emoji: '🧩', title: 'אות חסרה', sub: st('missing'), route: base + 'missing', big: true },
+          { emoji: '💬', title: 'משפט ותמונה', sub: st('sentences'), route: base + 'sentences', big: true }
+        ];
+      }
     }
   ];
   K.subject = id => K.SUBJECTS.find(s => s.id === id);
