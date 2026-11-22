@@ -52,6 +52,7 @@
           </button>`;
         }).join('')}
       </div>
+      ${K.examUI ? K.examUI.examEntry('geo') : ''}
       <div class="champ-box garden-champ">
         <span class="champ-medal" aria-hidden="true">${M ? M.emoji : '🏆'}</span>
         <div><b>אתגר האלופה של הגן</b>
@@ -63,6 +64,7 @@
     </div>`;
     $('#mission').onclick = () => { A('pop'); K.mission.start(mission); };
     $('#champ').onclick = () => { A('pop'); go('geo-practice/champ'); };
+    if (K.examUI) K.examUI.bindExam(root);
     $$('.gunit', root).forEach(b => b.onclick = () => { A('pop'); unitSheet(b.dataset.id); });
   } });
 
