@@ -42,12 +42,29 @@ K.parent = (function () {
       ${ex.map(([id, x]) => `<section class="p-sec"><h3>תרגול לפי חלקים</h3><ul class="p-rows">${EN_SECS.map(([k, n]) => { const p = (x.practice || {})[k]; return `<li class="p-row"><b>${n}</b>${p && p.plays ? `<small>${p.plays} סבבים · שיא ${p.best}% · אחרון ${p.last}%</small>` : '<small class="muted">עוד לא תורגל</small>'}</li>`; }).join('')}</ul>
         <p>${(x.mocks || []).length ? `מבדקי דמה: ${(x.mocks || []).length} · שיא ${x.best}% · אחרון ${(x.mocks[x.mocks.length - 1] || {}).pct}%` : 'עוד לא עשתה מבדק דמה.'}</p></section>`).join('')}`;
   }
+  function mathCard(d, e) {
+    const items = d.teacherSheet.pages.flatMap(p => p.sections.flatMap(x => x.items));
+    const solved = items.filter(i => (e.sheet || {})[i.id]).length;
+    const bullets = d.topics.flatMap(t => t.groups.flatMap(g => g.items));
+    const tp = e.topics || {}, done = bullets.filter(b => tp[b.id] && tp[b.id].plays);
+    const weak = done.filter(b => tp[b.id].best < 2).map(b => esc(b.text.replace(/[.:]$/, '')));
+    const m = e.mock || {};
+    const days = K.en ? K.en.daysLeft(d.date) : null;
+    return `<section class="p-sec"><h3>📝 ${esc(d.title)}</h3>
+      <p>${esc(d.dateLabel || d.date)}${days != null ? ` · ${days > 0 ? `עוד ${days} ימים` : days === 0 ? 'היום' : 'עבר'}` : ''}</p>
+      <p>דף התרגול של המורה: <b>${solved}/${items.length}</b> תרגילים נפתרו</p>
+      <p>${m.plays ? `שיא במבחן הדמה: <b>${m.best}/13</b> (${m.plays} פעמים)` : 'עוד לא עשתה מבחן דמה.'}</p>
+      <p>נושאים שתורגלו: ${done.length}/${bullets.length}</p>
+      ${weak.length ? `<p>כדאי לחזק (פחות מ-2 כוכבים):</p><ul class="p-weak">${weak.map(w => `<li>${w}</li>`).join('')}</ul>` : ''}
+    </section>`;
+  }
   async function examsPanel(root) {
     const box = $('#pExams', root); if (!box) return;
     const list = K.en ? await K.en.loadExams() : [];
     if (!box.isConnected) return;
     const st = K.store.state;
-    const others = K.SUBJECTS.filter(x => x.examPrep && !list.some(e => e.subject === x.id));
+    const mx = await fetch('data/exams/math-geo-2026-12-20.json').then(r => r.ok ? r.json() : null).catch(() => null);
+    if (!box.isConnected) return;
     box.innerHTML = list.map(x => {
       const xs = (st.exams || {})[x.id] || {}, mocks = xs.mocks || [], last = mocks[mocks.length - 1];
       const weak = last && last.bySec ? EN_SECS.filter(([k]) => last.bySec[k] && last.bySec[k][1] && last.bySec[k][0] / last.bySec[k][1] < .7).map(([, n]) => n) : [];
@@ -57,7 +74,7 @@ K.parent = (function () {
         <p>${mocks.length ? `שיא במבדק דמה: <b>${xs.best}%</b> · אחרון ${last.pct}% (${mocks.length} מבדקים)` : 'עוד לא עשתה מבדק דמה.'}</p>
         ${last ? `<p>${weak.length ? `כדאי לחזק: <b>${weak.join(', ')}</b>` : 'אין חלק חלש במבדק האחרון 👍'}</p>` : ''}
       </section>`;
-    }).join('') + others.map(x => `<section class="p-sec"><h3>${x.emoji} ${x.name}</h3><p class="muted">אזור ההכנה למבחן עוד בבנייה.</p></section>`).join('');
+    }).join('') + (mx ? mathCard(mx, (st.exams || {})[mx.id] || {}) : '');
   }
 
   route('parent', { chrome: 'flow', render(root) {
