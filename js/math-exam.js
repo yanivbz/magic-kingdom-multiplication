@@ -323,12 +323,17 @@
 
   /* ====================================================================== overview */
   /* focused screens without tab bars: #/mathx/sheet/<page> · #/mathx/topic/<id> · #/mathx/mock */
+  /* the same exam screen sits in two worlds: #/mathexam (ממלכת הכפל) and #/mathexam/geo (גן הצורות) */
+  let world = '';
+  const home = () => 'mathexam' + (world ? '/' + world : '');
   route('mathx', { chrome: 'none', render(root, mode, arg) {
+    if (mode === 'orig') return origScreen(root, arg);
     if (mode === 'topic') return topicScreen(root, arg);
     if (mode === 'mock') return mockScreen(root);
     return sheetScreen(root, +arg || 1);
   } });
-  route('mathexam', { chrome: 'tabs', render(root) {
+  route('mathexam', { chrome: 'tabs', render(root, w) {
+    world = w === 'geo' ? 'geo' : '';
     loadingScreen(root, (d, root) => {
       const e = exState(), k = daysTo(d.date), items = allItems(d), solved = items.filter(i => e.sheet[i.id]).length;
       const cd = k === 2 ? 'עוד יומיים למבחן' : k > 1 ? `עוד <b>${k}</b> ימים למבחן` : k === 1 ? 'המבחן מחר! את מוכנה 💪' : k === 0 ? 'המבחן היום! בהצלחה 🍀' : 'המבחן כבר היה. אפשר להמשיך לתרגל 🙂';
@@ -350,9 +355,11 @@
           <div class="mx-bring"><span>✏️ ${d.bring}</span>${SAY(d.bring)}</div>
           <p class="mx-sign">${d.signature}</p>
         </section>
+        <button class="mx-orig-entry" id="toOrig" type="button"><span aria-hidden="true">📄</span><b>הדפים המקוריים של המורה</b><small>🔒 להורים</small></button>
       </div>`;
       $('#toSheet').onclick = () => { A('pop'); go('mathx/sheet/1'); };
       $('#toMock').onclick = () => { A('pop'); go('mathx/mock'); };
+      $('#toOrig').onclick = () => { A('tap'); openOrig(0); };
       $$('[data-topic]', root).forEach(b => b.onclick = () => { A('pop'); go('mathx/topic/' + b.dataset.topic); });
     });
   } });
@@ -372,6 +379,7 @@
           ${(pg.remember || []).map(remember).join('')}
           <div id="mxSecs"></div>
           <div class="mx-end" id="mxEnd"></div>
+          <button class="mx-orig-link" id="mxOrig" type="button">📄 לראות את הדף המקורי <small>🔒 להורים</small></button>
         </div></div>`;
       const secs = $('#mxSecs', root);
       pg.sections.forEach(s => {
@@ -395,13 +403,43 @@
         const p = $('#mxPrev', root), nx = $('#mxNext', root), bk = $('#mxBack', root);
         if (p) p.onclick = () => { A('pop'); go('mathx/sheet/' + (pg.n - 1)); };
         if (nx) nx.onclick = () => { A('pop'); go('mathx/sheet/' + (pg.n + 1)); };
-        if (bk) bk.onclick = () => { A('pop'); go('mathexam'); };
+        if (bk) bk.onclick = () => { A('pop'); go(home()); };
       }
       refreshEnd.cheered = pageDone(pg); refreshEnd();
       $$('.mx-pg', root).forEach(b => b.onclick = () => { A('pop'); go('mathx/sheet/' + b.dataset.p); });
-      $('#mxX', root).onclick = () => { A('pop'); go('mathexam'); };
+      $('#mxX', root).onclick = () => { A('pop'); go(home()); };
+      $('#mxOrig', root).onclick = () => { A('tap'); openOrig(pg.n); };
     });
     return stopPad;
+  }
+
+  /* ====================================================================== the teacher's original pages (parents only) */
+  /* page images: data/exams/math-2026-12-20/orig/ (rendered from the teacher's PDFs). Behind the parent gate so
+     the child doesn't wander in by accident. Not precached: the service worker caches each image on first view. */
+  const ORIG_DIR = 'data/exams/math-2026-12-20/orig/';
+  const ORIG = [{ f: 'topics-1.webp', label: 'רשימת נושאים' }].concat([1, 2, 3, 4, 5, 6].map(n => ({ f: `practice-${n}.webp`, label: `דף תרגול עמ' ${n}`, sheet: n })));
+  function openOrig(i) {
+    const to = 'mathx/orig/' + i;
+    if (K.parent && K.parent.ok && !K.parent.ok()) return K.parent.gate(to);
+    go(to);
+  }
+  function origScreen(root, arg) {
+    if (!K.parent || !K.parent.ok || !K.parent.ok()) { const i = +arg || 0; go(home(), true); setTimeout(() => K.parent && K.parent.gate('mathx/orig/' + i), 50); return; }
+    const i = Math.min(ORIG.length - 1, Math.max(0, +arg || 0)), pg = ORIG[i];
+    root.innerHTML = `<div class="mx-flow mx-orig">${flowBar('📄 הדפים המקוריים של המורה')}
+      <p class="mx-note">להורים: הדפים כפי שהמורה שלחה, כדי להשוות לגרסה שבאפליקציה. הקישו על הדף כדי להגדיל.</p>
+      <nav class="mx-orig-tabs" aria-label="דפים">${ORIG.map((p, k) => `<button type="button" class="mx-ot${k === i ? ' on' : ''}" data-i="${k}"${k === i ? ' aria-current="page"' : ''}>${p.label}</button>`).join('')}</nav>
+      <div class="mx-orig-view" id="mxOv"><img src="${ORIG_DIR + pg.f}" alt="${pg.label} – הדף המקורי של המורה" width="1200" height="${pg.sheet ? 1553 : 1696}" decoding="async"></div>
+      <div class="mx-nav">${i > 0 ? `<button class="btn btn-secondary" id="ovPrev" type="button">→ ${ORIG[i - 1].label}</button>` : ''}${pg.sheet ? `<button class="btn btn-secondary" id="ovApp" type="button">לגרסה באפליקציה</button>` : ''}${i < ORIG.length - 1 ? `<button class="btn btn-secondary" id="ovNext" type="button">${ORIG[i + 1].label} ←</button>` : ''}</div>
+    </div>`;
+    const v = $('#mxOv', root);
+    v.onclick = () => v.classList.toggle('zoom');
+    $$('.mx-ot', root).forEach(b => b.onclick = () => { A('tap'); go('mathx/orig/' + b.dataset.i, true); });
+    const pv = $('#ovPrev', root), nx = $('#ovNext', root), ap = $('#ovApp', root);
+    if (pv) pv.onclick = () => { A('tap'); go('mathx/orig/' + (i - 1), true); };
+    if (nx) nx.onclick = () => { A('tap'); go('mathx/orig/' + (i + 1), true); };
+    if (ap) ap.onclick = () => { A('tap'); go('mathx/sheet/' + pg.sheet); };
+    $('#mxX', root).onclick = () => { A('tap'); go(home()); };
   }
 
   /* ====================================================================== one-question-at-a-time runner (topic practice + mock) */
@@ -411,7 +449,7 @@
       <div class="mx-prog"><div class="pbar"><i id="mxPf"></i></div><span id="mxPn"></span></div>
       <p class="mx-gen-tag">${label}</p>
       <div id="mxQ"></div><div class="mx-nav" id="mxNav"></div></div>`;
-    $('#mxX', root).onclick = () => { A('pop'); go('mathexam'); };
+    $('#mxX', root).onclick = () => { A('pop'); go(home()); };
     function show() {
       const it = items[i];
       $('#mxPf', root).style.width = Math.max(4, Math.round(i / items.length * 100)) + '%';
@@ -431,14 +469,14 @@
     $('#mxQ', root).innerHTML = `<div class="card mx-result"><div class="mx-res-e" aria-hidden="true">${emoji}</div><h2>${title}</h2><div class="mx-res-st" aria-label="${stars} כוכבים">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</div><p>${sub}</p>${extra}</div>`;
     $('#mxNav', root).innerHTML = `<button class="btn btn-primary btn-lg" id="mxAgain" type="button">🔄 עוד סבב</button><button class="btn btn-secondary btn-lg" id="mxHome" type="button">📝 להכנה למבחן</button>`;
     $('#mxAgain', root).onclick = () => { A('pop'); K.ui.render(); };
-    $('#mxHome', root).onclick = () => { A('pop'); go('mathexam'); };
+    $('#mxHome', root).onclick = () => { A('pop'); go(home()); };
     if (stars) { K.ui.confetti({ count: 60 + stars * 20, stars: true }); A(stars === 3 ? 'fanfare' : 'star'); }
   }
 
   function topicScreen(root, id) {
     hideChrome();
     loadingScreen(root, (d, root) => {
-      const b = bullets(d).find(x => x.id === id); if (!b) return go('mathexam', true);
+      const b = bullets(d).find(x => x.id === id); if (!b) return go(home(), true);
       const items = Array.from({ length: 6 }, () => MX.gen(b.gen)).map(it => Object.assign(it, { seed: Math.floor(Math.random() * 60) }));
       return runner(root, { title: '🎯 תרגול נוסף', label: `נושא: ${b.text} · שאלות שהאפליקציה יצרה לפי הנושא (לא מדף המורה)`, items, mock: false,
         onEnd: (r, rt) => {

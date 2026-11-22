@@ -67,9 +67,9 @@
         learn: { route: 'garden', status: 'ready' },
         practice: { route: 'train/geo', status: 'ready' },
         games: { status: 'soon' },
-        exam: { route: 'mathexam', status: 'ready' }   // same exam as ממלכת הכפל (חשבון וגיאומטריה, 20.12)
+        exam: { route: 'mathexam/geo', status: 'ready' }   // same exam as ממלכת הכפל (חשבון וגיאומטריה, 20.12)
       },
-      examPrep: { status: 'ready', route: 'mathexam', exam: 'math-geo-2026-12-20', title: 'מבחן בחשבון וגיאומטריה', blurb: 'אותו מבחן כמו בממלכת הכפל (20.12)' },
+      examPrep: { status: 'ready', route: 'mathexam/geo', exam: 'math-geo-2026-12-20', title: 'מבחן בחשבון וגיאומטריה', blurb: 'אותו מבחן כמו בממלכת הכפל (20.12)' },
       progress() {
         const g = S().geo; if (!g || !K.GEO) return null;
         const ready = K.GEO.UNITS.filter(u => u.ready);
@@ -135,13 +135,8 @@
   /* which subject/section does the current screen belong to? */
   K.sectionOf = (name, args) => {
     const path = [name, ...(args || [])].join('/');
-    for (const sub of K.SUBJECTS) {
-      for (const s of K.SECTIONS) {
-        const r = K.sectionRoute(sub, s.id);
-        if (!r) continue;
-        if (r === path || (!r.includes('/') && r === name)) return { sub, sec: s.id };
-      }
-    }
-    return null;
+    const each = test => { for (const sub of K.SUBJECTS) for (const s of K.SECTIONS) { const r = K.sectionRoute(sub, s.id); if (r && test(r)) return { sub, sec: s.id }; } return null; };
+    /* exact path first (e.g. 'mathexam/geo' belongs to גן הצורות), then a bare route name */
+    return each(r => r === path) || each(r => !r.includes('/') && r === name);
   };
 })();

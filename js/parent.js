@@ -5,7 +5,7 @@ K.parent = (function () {
   let okUntil = 0;
   const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 
-  function gate() {
+  function gate(next) {
     const a = rnd(12, 19), b = rnd(6, 9);
     const s = sheet(`<div class="gate"><div class="gate-ic">${I().lock}</div><h2>פינת ההורים</h2><p class="muted">כדי להיכנס, פתרו תרגיל למבוגרים:</p>
       <div class="eq big" dir="ltr"><span>${a}</span><span>×</span><span>${b}</span><span>=</span><b>?</b></div>
@@ -13,7 +13,7 @@ K.parent = (function () {
       <button class="btn btn-primary btn-lg" id="gok">כניסה</button><p class="muted gate-err" id="gerr" aria-live="polite"></p></div>`, { cls: 'sheet-small' });
     const inp = $('#gans', s.el); inp.focus();
     const check = () => {
-      if (Number(inp.value) === a * b) { okUntil = Date.now() + 30 * 60000; s.close(); go('parent'); }
+      if (Number(inp.value) === a * b) { okUntil = Date.now() + 30 * 60000; s.close(); go(next || 'parent'); }
       else { K.audio.play('wrong'); $('#gerr', s.el).textContent = 'לא נכון, נסו שוב.'; inp.value = ''; inp.classList.add('shake'); setTimeout(() => inp.classList.remove('shake'), 400); }
     };
     $('#gok', s.el).onclick = check; inp.onkeydown = e => { if (e.key === 'Enter') check(); };
@@ -79,5 +79,5 @@ K.parent = (function () {
     $('#reset', root).onclick = () => { if (confirm('למחוק את כל ההתקדמות, המטבעות והבית? אי אפשר לבטל.')) { K.store.reset(); go('welcome'); } };
   } });
 
-  return { gate };
+  return { gate, ok: () => Date.now() <= okUntil };
 })();
