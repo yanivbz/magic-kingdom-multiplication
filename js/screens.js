@@ -94,7 +94,6 @@
           <button class="tool-btn" id="toIntro" type="button">${I().book}<span>מה זה כפל?</span></button>
           <button class="tool-btn" id="toProg" type="button">✨<span>ההתקדמות שלי</span></button>
         </div>
-        ${K.examUI ? K.examUI.examEntry('kefel') : ''}
       </aside>
       <section class="map-wrap" aria-label="מפת הממלכה"><div class="map">
         ${K.art.mapScene()}

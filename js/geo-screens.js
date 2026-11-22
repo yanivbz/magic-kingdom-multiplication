@@ -52,7 +52,6 @@
           </button>`;
         }).join('')}
       </div>
-      ${K.examUI ? K.examUI.examEntry('geo') : ''}
       <div class="champ-box garden-champ">
         <span class="champ-medal" aria-hidden="true">${M ? M.emoji : '🏆'}</span>
         <div><b>אתגר האלופה של הגן</b>
