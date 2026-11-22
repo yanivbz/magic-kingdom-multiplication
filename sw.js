@@ -1,11 +1,12 @@
 /* Offline-first service worker. Bump VERSION when any asset changes. */
-const VERSION = 'kefel-v2.3.0';
+const VERSION = 'kefel-v2.4.0';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
-  'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css', 'css/geo.css',
+  'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css', 'css/geo.css', 'css/english.css',
   'js/data.js', 'js/geo-data.js', 'js/store.js', 'js/audio.js', 'js/engine.js', 'js/geo-engine.js', 'js/mission.js', 'js/art.js', 'js/geo-art.js', 'js/ui.js', 'js/screens.js', 'js/subjects.js', 'js/hub.js',
   'js/lesson.js', 'js/practice.js', 'js/games.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js',
-  'js/geo-screens.js', 'js/geo-lesson.js', 'js/geo-practice.js', 'js/speech.js', 'js/app.js',
+  'js/geo-screens.js', 'js/geo-lesson.js', 'js/geo-practice.js', 'js/speech.js', 'js/english-data.js', 'js/english.js', 'js/app.js',
+  'data/exams/index.json', 'data/exams/english-2026-11-30.json',
   'fonts/rubik-hebrew-wght-normal.woff2', 'fonts/rubik-latin-wght-normal.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ];
