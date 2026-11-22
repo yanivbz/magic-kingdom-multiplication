@@ -38,9 +38,9 @@
         learn: { route: 'map', status: 'ready' },
         practice: { route: 'train/kefel', status: 'ready' },
         games: { route: 'games', status: 'ready' },
-        exam: { route: 'exam/kefel', status: 'soon' }
+        exam: { route: 'mathexam', status: 'ready' }
       },
-      examPrep: { status: 'soon', blurb: 'תרגול ומבחן דמה בחשבון' },
+      examPrep: { status: 'ready', route: 'mathexam', exam: 'math-geo-2026-12-20', title: 'מבחן בחשבון וגיאומטריה', date: '2026-12-20', blurb: 'דף התרגול של המורה, תרגול לפי נושאים ומבחן דמה' },
       progress() {
         const tl = K.readyTables ? K.readyTables() : K.TABLE_LIST;
         if (!tl || !tl.length) return null;
@@ -67,9 +67,9 @@
         learn: { route: 'garden', status: 'ready' },
         practice: { route: 'train/geo', status: 'ready' },
         games: { status: 'soon' },
-        exam: { route: 'exam/geo', status: 'soon' }
+        exam: { route: 'mathexam', status: 'ready' }   // same exam as ממלכת הכפל (חשבון וגיאומטריה, 20.12)
       },
-      examPrep: { status: 'soon', blurb: 'תרגול ומבחן דמה בגאומטריה' },
+      examPrep: { status: 'ready', route: 'mathexam', exam: 'math-geo-2026-12-20', title: 'מבחן בחשבון וגיאומטריה', blurb: 'אותו מבחן כמו בממלכת הכפל (20.12)' },
       progress() {
         const g = S().geo; if (!g || !K.GEO) return null;
         const ready = K.GEO.UNITS.filter(u => u.ready);
