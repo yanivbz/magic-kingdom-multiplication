@@ -39,7 +39,6 @@
     const M = medal ? K.MEDALS[medal] : null;
     const units = K.GEO.UNITS;
     root.innerHTML = `<div class="garden">
-      ${K.geoArt.gardenBanner()}
       ${K.mission.nowCard(mission, c)}
       <div class="garden-units" role="list">
         ${units.map((u, i) => {
@@ -52,17 +51,8 @@
           </button>`;
         }).join('')}
       </div>
-      <div class="champ-box garden-champ">
-        <span class="champ-medal" aria-hidden="true">${M ? M.emoji : '🏆'}</span>
-        <div><b>אתגר האלופה של הגן</b>
-          <small>${M ? `יש לך מדליית ${M.name}! אפשר לנסות לשפר.` : 'מבחן מעורב על זוויות. מדליה מעניקה את שרביט הצורות — בנפרד מכתר הכפל של הממלכה.'}</small>
-          <small class="muted">ארד 55% · כסף 75% · זהב 90%</small>
-        </div>
-        <button class="btn btn-primary" id="champ">🏆 לאתגר!</button>
-      </div>
     </div>`;
     $('#mission').onclick = () => { A('pop'); K.mission.start(mission); };
-    $('#champ').onclick = () => { A('pop'); go('geo-practice/champ'); };
     if (K.examUI) K.examUI.bindExam(root);
     $$('.gunit', root).forEach(b => b.onclick = () => { A('pop'); unitSheet(b.dataset.id); });
   } });

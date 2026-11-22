@@ -36,7 +36,7 @@ K.GAMES = {
     let sc = scope || 'all';
     function draw() {
       root.innerHTML = `<div class="games">
-        <div class="games-head"><div class="mission-char">${K.art.char(c.id, 'cheer')}</div>${K.ui.bubble('בואי נשחק! בחרי משחק. התרגילים במשחק נבחרים לפי מה שהכי כדאי לך לחזק.')}</div>
+        <div class="games-head"><div class="mission-char">${K.art.char(c.id, 'cheer')}</div>${K.ui.bubble('בחרי משחק!')}</div>
         <div class="chip-row g-scope" role="tablist" aria-label="על מה משחקים">${scopes.map(([id, n]) => `<button class="chip${id === sc ? ' on' : ''}" data-s="${id}" role="tab" aria-selected="${id === sc}">${n}</button>`).join('')}</div>
         <div class="game-cards">${Object.entries(K.GAMES).map(([k, G]) => `<button class="game-card" data-g="${k}" style="--gc:${G.color}"><span class="gc-e" aria-hidden="true">${G.emoji}</span><b>${G.name}</b><small>${G.blurb}</small>${g[k] && g[k].best ? `<em>שיא: ${g[k].best}</em>` : ''}</button>`).join('')}</div>
       </div>`;

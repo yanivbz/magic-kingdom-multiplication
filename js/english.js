@@ -79,17 +79,12 @@
     </div>`, { cls: 'en-sheet' });
     const play = () => say(`${l.up}. ${l.word}.`, { rate: 0.7 });
     $('#lsSay', s.el).onclick = () => { A('tap'); play(); };
-    setTimeout(play, 350);
   }
 
   /* ------------------------------------------------------------------ English world · 📖 לומדים (learned letters) */
   function learnPage(root) {
     const ls = learned();
     root.innerHTML = `<div class="en-world">
-      <div class="en-hero">
-        <div class="en-hero-t"><h1 dir="ltr">English Land</h1><p class="lead">האותיות שלמדנו. לחצי על אות כדי לשמוע אותה.</p></div>
-        <span class="en-hero-e" aria-hidden="true">🦉</span>
-      </div>
       <div id="enExam"></div>
       <div class="en-lhead"><h2 class="en-h2">האותיות שלמדנו</h2><span class="en-count">${ls.length}</span></div>
       <div class="en-lgrid">${ls.map(letterCard).join('')}</div>
