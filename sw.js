@@ -1,5 +1,5 @@
 /* Offline-first service worker. Bump VERSION when any asset changes. */
-const VERSION = 'kefel-v2.4.1';
+const VERSION = 'kefel-v2.4.2';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
   'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css', 'css/geo.css', 'css/english.css', 'css/math-exam.css',

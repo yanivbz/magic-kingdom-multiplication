@@ -175,3 +175,17 @@
 .mx-pad { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: rgba(255,255,255,.97); box-shadow: 0 -8px 24px rgba(91,52,214,.18); padding: 10px 12px calc(10px + var(--safe-b)); border-radius: 22px 22px 0 0; }
 .mx-pad .key { min-height: 52px; }
 body.mx-pad-open #screen { padding-bottom: 300px !important; }
+
+/* ---------- the teacher's original pages (parents only, behind the parent gate) ---------- */
+.mx-orig-entry { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 14px; padding: 14px 16px; border-radius: 16px; border: 1.5px solid var(--line, #e3ddf3); background: #fff; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.mx-orig-entry b { flex: 1; font-size: 16px; }
+.mx-orig-entry small, .mx-orig-link small { color: var(--muted); font-weight: 600; }
+.mx-orig-link { display: block; margin: 18px auto 0; padding: 10px 14px; border: 0; background: none; color: var(--muted); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+.mx-orig .mx-note { margin: 10px 12px; }
+.mx-orig-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px; }
+.mx-ot { min-height: 40px; padding: 6px 12px; border-radius: 12px; border: 1.5px solid var(--line, #e3ddf3); background: #fff; color: inherit; font: inherit; font-size: 14px; cursor: pointer; }
+.mx-ot.on { border-color: var(--violet, #7c5cff); background: var(--violet-l, #f1edff); font-weight: 700; }
+.mx-orig-view { margin: 0 12px; border: 1px solid var(--line, #e3ddf3); border-radius: 12px; background: #fff; overflow: auto; cursor: zoom-in; touch-action: pan-x pan-y pinch-zoom; }
+.mx-orig-view img { display: block; width: 100%; height: auto; }
+.mx-orig-view.zoom { cursor: zoom-out; max-height: 78vh; }
+.mx-orig-view.zoom img { width: 220%; max-width: none; }
