@@ -11,13 +11,35 @@
   const progHTML = sub => {
     const p = sub.progress ? sub.progress() : null;
     if (!p) return '';
-    return `<span class="wb-prog"><span class="pbar" style="--tc:#fff"><i style="width:${Math.max(4, Math.round(p.pct * 100))}%"></i></span><em>${p.label}</em></span>`;
+    return `<span class="wb-prog noread"><span class="pbar"><i style="width:${Math.max(4, Math.round(p.pct * 100))}%"></i></span><em>${p.label}</em></span>`;
   };
+  /* days until an ISO date (YYYY-MM-DD), local time; null if missing/past */
+  function daysTo(iso) {
+    if (!iso) return null;
+    const d = new Date(iso + 'T12:00:00'), n = new Date(); n.setHours(12, 0, 0, 0);
+    const k = Math.round((d - n) / 86400000);
+    return k >= 0 ? k : null;
+  }
+  const daysTxt = k => k === 0 ? 'היום!' : k === 1 ? 'מחר!' : `עוד ${k} ימים`;
+  /* rewards shown on the hub: stars (kefel + geo), medals (kefel areas + garden), streak */
+  function rewards() {
+    const st = S(), g = st.geo || {};
+    const geoStars = Object.values(g.units || {}).reduce((s, u) => s + ((u && u.stars) || 0), 0);
+    const stars = K.store.totalStars() + geoStars;
+    const medals = K.store.medalCount() + (g.medals && g.medals.garden ? 1 : 0);
+    return { stars, medals, streak: K.store.streakNow() };
+  }
+  function cheer(r, name) {
+    if (r.streak >= 3) return `וואו, ${r.streak} ימים ברצף! את אלופה 🔥`;
+    if (r.stars >= 10) return `כבר ${r.stars} כוכבים! איזו התקדמות ⭐`;
+    if (r.stars > 0) return `יש לך ${r.stars} כוכבים. נאסוף עוד?`;
+    return 'בואי נצא להרפתקה ונאסוף כוכבים!';
+  }
   /* "📝 הכנה למבחן" entry placed inside each world */
   function examEntry(id) {
     const sub = K.subject(id);
     if (!sub || !sub.examPrep) return '';
-    return `<button class="exam-entry" type="button" data-exam="${sub.id}"><span aria-hidden="true">📝</span><b>הכנה למבחן</b>${sub.examPrep.status === 'soon' ? '<small class="soon-tag">בקרוב</small>' : ''}</button>`;
+    return `<button class="exam-entry" type="button" data-exam="${sub.id}"><span aria-hidden="true">📝</span><b>הכנה למבחן</b>${sub.examPrep.status === 'soon' ? '<small class="soon-tag noread">בקרוב</small>' : ''}</button>`;
   }
   function bindExam(root) { $$('[data-exam]', root).forEach(b => b.onclick = () => { A('pop'); go('exam/' + b.dataset.exam); }); }
   K.examUI = { examEntry, bindExam };
@@ -31,25 +53,34 @@
     const st = S(), c = chr(), m = K.mission.hubNext();
     const name = st.name ? esc(st.name) : 'עומר';
     const exams = K.SUBJECTS.filter(x => x.examPrep);
+    const r = rewards();
+    const upcoming = exams.map(x => ({ x, k: daysTo(x.examPrep.date) })).filter(e => e.k != null).sort((p, q) => p.k - q.k);
     root.innerHTML = `<div class="hub">
       <div class="hub-hello">
         <div class="hub-char">${K.art.char(c.id, 'happy')}</div>
         <div class="hub-hi">
-          <h1>שלום ${name}! ✨</h1>
-          <p>${c.name} איתך במסע. לאן נלך היום?</p>
+          <h1>שלום ${name}! <span class="wave" aria-hidden="true">👋</span></h1>
+          <p>${cheer(r, name)}</p>
         </div>
       </div>
+      <div class="rewards noread" aria-label="${r.stars} כוכבים, ${r.medals} מדליות, רצף של ${r.streak} ימים">
+        <button class="rw" type="button" id="rwStars"><span class="rw-e" aria-hidden="true">⭐</span><b>${r.stars}</b><small>כוכבים</small></button>
+        <button class="rw" type="button" id="rwMedals"><span class="rw-e" aria-hidden="true">🏅</span><b>${r.medals}</b><small>מדליות</small></button>
+        <button class="rw" type="button" id="rwStreak"><span class="rw-e" aria-hidden="true">🔥</span><b>${r.streak}</b><small>ימים ברצף</small></button>
+      </div>
       ${K.mission.nowCard(m, c)}
-      <h2 class="hub-sec">העולמות שלי</h2>
+      <h2 class="hub-sec"><span aria-hidden="true">🗺️</span> העולמות שלי</h2>
       <div class="worlds">
-        ${K.SUBJECTS.map(sub => `<button class="world-btn ${sub.cls}${sub.status === 'soon' ? ' soon' : ''}" data-sub="${sub.id}" type="button" aria-label="${sub.name}${sub.status === 'soon' ? ', בקרוב' : ''}">
+        ${K.SUBJECTS.map((sub, i) => `<button class="world-btn ${sub.cls}${sub.status === 'soon' ? ' soon' : ''}" data-sub="${sub.id}" type="button" style="--i:${i}" aria-label="${sub.name}${sub.status === 'soon' ? ', בקרוב' : ''}">
           <span class="wb-e" aria-hidden="true">${sub.emoji}</span>
-          <span class="wb-t"><b${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</b><small>${sub.blurb}</small>${sub.status === 'soon' ? '<small class="soon-tag">בקרוב</small>' : progHTML(sub)}</span>
+          <span class="wb-t"><b${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</b><small>${sub.blurb}</small>${sub.status === 'soon' ? '<small class="soon-tag noread">✨ בקרוב</small>' : progHTML(sub)}</span>
+          <span class="wb-go" aria-hidden="true">${I().back ? I().back.replace('M9 5l7 7-7 7', 'M15 5l-7 7 7 7') : '‹'}</span>
         </button>`).join('')}
       </div>
       ${exams.length ? `<div class="exams-card card">
-        <h2>📝 מבחנים קרובים</h2>
-        <p class="muted">עוד אין מבחנים ברשימה. כשההורים יוסיפו נושאים, הם יופיעו כאן עם תרגול מיוחד.</p>
+        <h2><span aria-hidden="true">📝</span> מבחנים קרובים</h2>
+        ${upcoming.length ? `<div class="exam-next">${upcoming.map(e => `<button class="exam-cd" type="button" data-exam="${e.x.id}"><span class="ec-e" aria-hidden="true">${e.x.emoji}</span><span class="ec-t"><b${e.x.ltr ? ' dir="ltr"' : ''}>${e.x.examPrep.title || e.x.name}</b><small>${daysTxt(e.k)}</small></span><span class="ec-d noread">${e.k}<small>ימים</small></span></button>`).join('')}</div>`
+          : `<p class="muted">עוד אין מבחן קרוב. אפשר להתכונן כבר עכשיו:</p>`}
         <div class="exam-chips">${exams.map(x => `<button class="exam-chip" type="button" data-exam="${x.id}"><span aria-hidden="true">${x.emoji}</span> <span${x.ltr ? ' dir="ltr"' : ''}>${x.name}</span></button>`).join('')}</div>
       </div>` : ''}
       <button class="btn btn-secondary btn-lg" id="toProg">✨ ההתקדמות שלי</button>
@@ -58,6 +89,7 @@
     $$('[data-sub]', root).forEach(b => b.onclick = () => { A('pop'); openSubject(K.subject(b.dataset.sub)); });
     bindExam(root);
     $('#toProg').onclick = () => { A('pop'); go('progress'); };
+    ['#rwStars', '#rwMedals', '#rwStreak'].forEach(id => { $(id).onclick = () => { A('pop'); go('progress'); }; });
   } });
 
   /* placeholder world for subjects that are not built yet (e.g. English Land) */

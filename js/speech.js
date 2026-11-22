@@ -142,7 +142,7 @@
     { sel: '.method-demo > p', pos: 'float', prio: 0 },
     { sel: '.res-note, .result .sub', pos: 'float', prio: 0 },
     { sel: '.result-msg, .reward-msg', pos: 'float', prio: 0 },
-    { sel: '.daily-txt, .crown-card > div, .crown-row > div > small, .champ-box > div, .mem-help, .order > small, .race-start .muted, .place-bar > span, .gunit .gu-n, .geo-dial-cap, .hub-hi p, .wb-t, .week-note, .prog-links > b', pos: 'float', prio: 0 }
+    { sel: '.daily-txt, .crown-card > div, .crown-row > div > small, .champ-box > div, .mem-help, .order > small, .race-start .muted, .place-bar > span, .gunit .gu-n, .geo-dial-cap, .hub-hi p, .wb-t, .exams-card > p, .soon-hero p, .week-note, .prog-links > b', pos: 'float', prio: 0 }
   ];
   const ALLSEL = DEFS.map(d => d.sel).join(',');
   const ROOTS = () => [document.getElementById('screen'), document.getElementById('overlay')].filter(Boolean);
