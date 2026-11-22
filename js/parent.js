@@ -53,6 +53,7 @@ K.parent = (function () {
         <section class="p-sec"><h3>איך המשחק מתאים את עצמו</h3>
           <ul class="how"><li>כל תרגיל נמדד בנפרד, והטעויות נשמרות במכשיר בלבד.</li><li>תרגילים שהיא מתקשה בהם חוזרים לעיתים קרובות יותר, ובסבב עצמו גם חוזרים אחרי טעות.</li><li>כשתרגיל מוכר, הוא מוצג בצורה קשה יותר (הקלדה, מספר חסר, בעיה מילולית) ורק אחרי כמה ימים הוא חוזר.</li><li>אין שעון ואין לחץ. מומלץ 5 דקות ביום, כל יום.</li></ul>
         </section>
+        ${K.en ? K.en.parentSection() : ''}
         <section class="p-sec"><h3>הגדרות</h3>
           <label class="switch"><input type="checkbox" id="sSound" ${st.settings.sound ? 'checked' : ''}><span>צלילים</span></label>
           <p class="muted">🔊 הקראה: לוחצים על הרמקול ליד כל טקסט. אין הקראה אוטומטית בכניסה למסך.</p>
@@ -63,6 +64,7 @@ K.parent = (function () {
         </section>
       </div></div>`;
     $('#x', root).onclick = () => go('hub');
+    if (K.en) K.en.bindParent(root);
     $('#sSound', root).onchange = e => { st.settings.sound = e.target.checked; K.store.save(); };
     (function voiceNote() {
       const sp = K.speech, el = $('#voiceNote', root); if (!sp || !el) return;
