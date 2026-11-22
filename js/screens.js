@@ -88,11 +88,9 @@
     root.innerHTML = `<div class="map-layout">
       <aside class="map-side">
         ${K.mission.nowCard(mission, c)}
-        ${st.introDone ? dailyCard() : ''}
         <div class="map-tools">
           <button class="tool-btn" id="toExp" type="button">${I().grid}<span>לוח הכפל</span></button>
           <button class="tool-btn" id="toIntro" type="button">${I().book}<span>מה זה כפל?</span></button>
-          <button class="tool-btn" id="toProg" type="button">✨<span>ההתקדמות שלי</span></button>
         </div>
       </aside>
       <section class="map-wrap" aria-label="מפת הממלכה"><div class="map">
@@ -108,7 +106,6 @@
     const dl = $('#daily'); if (dl) dl.onclick = () => { A('pop'); go('practice/daily'); };
     $('#toExp').onclick = () => { A('pop'); go('explorer'); };
     $('#toIntro').onclick = () => { A('pop'); go('intro'); };
-    $('#toProg').onclick = () => { A('pop'); go('progress'); };
     if (K.examUI) K.examUI.bindExam(root);
     $$('.node', root).forEach(n => n.onclick = () => {
       A('pop');

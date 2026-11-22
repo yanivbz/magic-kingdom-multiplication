@@ -58,7 +58,7 @@
     if (sub.world) K.mission.setWorld(sub.world);
     const tabs = K.SECTIONS.filter(s => sub.sections[s.id]);
     const bar = K.ui.h(`<nav class="world-bar ${sub.cls}" aria-label="${sub.name}">
-      <div class="wbar-head"><span class="wbar-e" aria-hidden="true">${sub.emoji}</span><b${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</b></div>
+      <div class="wbar-head"><a class="wbar-back" href="#/hub" aria-label="חזרה לבית">→</a><span class="wbar-e" aria-hidden="true">${sub.emoji}</span><b${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</b></div>
       <div class="wbar-tabs">${tabs.map(s => { const d = sub.sections[s.id], soon = d.status === 'soon', on = s.id === sec;
         return `<a href="#/${K.sectionRoute(sub, s.id)}" class="wbar-tab${on ? ' on' : ''}${soon ? ' soon' : ''}" ${on ? 'aria-current="page"' : ''}><span class="wt-e" aria-hidden="true">${s.emoji}</span><span>${s.name}</span>${soon ? '<small class="noread">בקרוב</small>' : ''}</a>`; }).join('')}</div>
     </nav>`);
@@ -93,7 +93,7 @@
       <div class="hub-hello compact">
         <div class="hub-char">${K.art.char(c.id, 'happy')}</div>
         <div class="hub-hi">
-          <h1>שלום ${name}! <span class="wave" aria-hidden="true">👋</span></h1>
+          <h1>שלום ${name}!</h1>
           <p>${cheer(r, name)}</p>
         </div>
       </div>
@@ -117,21 +117,11 @@
         ${K.speakBtn ? K.speakBtn(m.msg) : ''}
         <button class="btn btn-primary" id="mission" type="button">${m.cta} ▶</button>
       </div>
-      <div class="rewards noread" aria-label="${r.stars} כוכבים, ${r.medals} מדליות, רצף של ${r.streak} ימים">
-        <button class="rw" type="button" id="rwStars"><span class="rw-e" aria-hidden="true">⭐</span><b>${r.stars}</b><small>כוכבים</small></button>
-        <button class="rw" type="button" id="rwMedals"><span class="rw-e" aria-hidden="true">🏅</span><b>${r.medals}</b><small>מדליות</small></button>
-        <button class="rw" type="button" id="rwStreak"><span class="rw-e" aria-hidden="true">🔥</span><b>${r.streak}</b><small>ימים ברצף</small></button>
-      </div>
-      ${upcoming.length ? `<div class="exams-card card">
-        <h2><span aria-hidden="true">📝</span> מבחנים קרובים</h2>
-        <div class="exam-next">${upcoming.map(e => `<button class="exam-cd" type="button" data-exam="${e.x.id}"><span class="ec-e" aria-hidden="true">${e.x.emoji}</span><span class="ec-t"><b${e.x.ltr ? ' dir="ltr"' : ''}>${e.x.examPrep.title || e.x.name}</b><small>${daysTxt(e.k)}</small></span><span class="ec-d noread">${e.k}<small>ימים</small></span></button>`).join('')}</div>
-      </div>` : ''}
     </div>`;
     $('#mission').onclick = () => { A('pop'); K.mission.start(m); };
     $$('[data-sub]', root).forEach(b => b.onclick = () => { A('pop'); openSubject(K.subject(b.dataset.sub)); });
     const te = $('#toExams'); if (te) te.onclick = () => { A('pop'); examPicker(); };
     bindExam(root);
-    ['#rwStars', '#rwMedals', '#rwStreak'].forEach(id => { $(id).onclick = () => { A('pop'); go('progress'); }; });
   } });
 
   /* placeholder world for subjects that are not built yet (e.g. English Land) */
@@ -182,41 +172,54 @@
     </div>`;
   } });
 
+  /* "ההתקדמות שלי": one subject at a time (chips on top), a few big visual items, one primary action */
+  let progSub = null;
+  function progItems(id) {
+    const st = S();
+    if (id === 'kefel') {
+      const sub = K.subject('kefel'), tl = K.readyTables();
+      const stars = tl.reduce((n, t) => n + ((st.tables[t] && st.tables[t].stars) || 0), 0);
+      return [
+        { e: '⭐', big: `${stars}`, small: `כוכבים מתוך ${tl.length * 3}` },
+        { e: '👑', big: `${K.store.crownPieces()}/${K.AREAS.length}`, small: 'חלקי כתר', go: 'home' },
+        { e: '🏅', big: `${K.store.medalCount()}`, small: 'מדליות' }
+      ];
+    }
+    if (id === 'geo') {
+      const g = st.geo || { units: {}, medals: {} }, ready = K.GEO.UNITS.filter(u => u.ready);
+      const stars = ready.reduce((n, u) => n + ((g.units[u.id] && g.units[u.id].stars) || 0), 0);
+      const M = g.medals && g.medals.garden ? K.MEDALS[g.medals.garden] : null;
+      return [
+        { e: '⭐', big: `${stars}`, small: `כוכבים מתוך ${ready.length * 3}` },
+        { e: M ? M.emoji : '🪄', big: M ? M.name : '–', small: M ? 'מדליה בגן' : 'עוד אין מדליה' }
+      ];
+    }
+    if (id === 'english') {
+      const e = st.english || {}, x = st.exams && st.exams['english-2026-11-30'];
+      const n = Array.isArray(e.learnedLetters) ? e.learnedLetters.length : (K.EN_DEFAULT_LEARNED || []).length;
+      return [
+        { e: '🔤', big: `${n}`, small: 'אותיות שלמדנו' },
+        { e: '🏆', big: x && x.best ? `${x.best}%` : '–', small: 'שיא במבדק הדמה' }
+      ];
+    }
+    return [];
+  }
   route('progress', { chrome: 'tabs', render(root) {
-    const st = S(), fa = K.mission.friendArea();
-    const pieces = K.store.crownPieces();
-    const g = K.GEO && K.GEO.region;
-    const geoMedal = K.geoStore ? K.geoStore.geo().medals.garden : null;
-    const GM = geoMedal ? K.MEDALS[geoMedal] : null;
-    const met = (st.friends || []).map(id => K.AREAS.find(a => a.id === id)).filter(Boolean);
-    const kashet = g && K.geoStore && (K.geoStore.geo().friends || []).length;
-    root.innerHTML = `<div class="progress-page">
-      <h1 class="prog-title">ההתקדמות שלי</h1>
-      <div class="subj-prog card">
-        <b>ההתקדמות לפי מקצוע</b>
-        ${K.SUBJECTS.map(sub => { const p = sub.progress ? sub.progress() : null; return `<div class="sp-row" style="--tc:${sub.color}"><span class="sp-e" aria-hidden="true">${sub.emoji}</span><span class="sp-n"${sub.ltr ? ' dir="ltr"' : ''}>${sub.name}</span>${p ? `<span class="pbar"><i style="width:${Math.max(4, Math.round(p.pct * 100))}%"></i></span><small>${p.label}</small>` : '<small class="soon-tag">בקרוב</small>'}</div>`; }).join('')}
-      </div>
-      <div class="prog-grid">
-        <div class="crown-card card" id="crownCard">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${pieces} מתוך ${K.AREAS.length} חלקים · כל מדליה באתגר האלופה של אזור מוסיפה חלק</small></div></div>
-        ${g ? `<div class="crown-card card geo-wand-card"><span class="wand-e" aria-hidden="true">${GM ? GM.emoji : '🪄'}</span><div><b>${g.wand.name}</b><small>${GM ? `יש לך מדליית ${GM.name} בגן הצורות.` : 'המדליה של גן הצורות נפרדת מכתר הכפל. מרוויחים אותה באתגר האלופה של הגן.'}</small></div></div>` : ''}
-        <div class="week card">${K.mission.weekStrip()}</div>
-        ${K.mission.orderRow()}
-        <div class="friend card">
-          <div class="friend-top"><span class="friend-e" aria-hidden="true">${fa.friend.emoji}</span><div><small>${fa.emoji} ${fa.name}</small><b>${fa.friend.name}</b></div></div>
-          ${K.ui.bubble(fa.friend.line)}
-          ${(met.length || kashet) ? `<div class="friend-met">${met.map(a => `<span class="fchip" title="${a.friend.name}">${a.friend.emoji} ${a.friend.name}</span>`).join('')}${kashet ? `<span class="fchip">${g.friend.emoji} ${g.friend.name}</span>` : ''}</div>` : ''}
-        </div>
-        <div class="prog-links card">
-          <b>עוד בממלכה</b>
-          <div class="map-tools">
-            <button class="tool-btn" id="toExp" type="button">${I().grid}<span>לוח הכפל</span></button>
-            <button class="tool-btn" id="toIntro" type="button">${I().book}<span>מה זה כפל?</span></button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-    $('#crownCard').onclick = () => { A('pop'); go('home'); };
-    $('#toExp').onclick = () => { A('pop'); go('explorer'); };
-    $('#toIntro').onclick = () => { A('pop'); go('intro'); };
+    const subs = K.SUBJECTS.filter(x => x.status === 'ready');
+    if (!progSub || !subs.find(x => x.id === progSub)) progSub = (K.mission.world() === 'garden' ? 'geo' : 'kefel');
+    const draw = () => {
+      const sub = K.subject(progSub), items = progItems(progSub), streak = K.store.streakNow();
+      root.innerHTML = `<div class="prog2">
+        <h1 class="prog-title">ההתקדמות שלי</h1>
+        <div class="prog-chips" role="tablist" aria-label="מקצוע">${subs.map(x => `<button class="pchip ${x.cls}${x.id === progSub ? ' on' : ''}" role="tab" aria-selected="${x.id === progSub}" data-ps="${x.id}" type="button"><span aria-hidden="true">${x.emoji}</span> <span${x.ltr ? ' dir="ltr"' : ''}>${x.short || x.name}</span></button>`).join('')}</div>
+        <div class="prog-big ${sub.cls}">${items.map(it => `<div class="pbig${it.go ? ' link' : ''}"${it.go ? ` data-go="${it.go}" role="button" tabindex="0"` : ''}><span class="pb-e" aria-hidden="true">${it.e}</span><b>${it.big}</b><small>${it.small}</small></div>`).join('')}</div>
+        ${streak ? `<p class="prog-streak">🔥 ${streak} ימים ברצף</p>` : ''}
+        <button class="btn btn-primary btn-lg subj-btn ${sub.cls}" id="goSub" type="button">${sub.emoji} ממשיכים ב${sub.short && !sub.ltr ? sub.short : 'עולם'} ▶</button>
+      </div>`;
+      $$('[data-ps]', root).forEach(b => b.onclick = () => { A('tap'); progSub = b.dataset.ps; draw(); });
+      $$('[data-go]', root).forEach(b => b.onclick = () => { A('pop'); go(b.dataset.go); });
+      $('#goSub', root).onclick = () => { A('pop'); openSubject(sub); };
+    };
+    draw();
   } });
 })();
