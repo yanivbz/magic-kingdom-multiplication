@@ -41,6 +41,7 @@ K.ui = (function () {
     if (def.chrome === 'tabs') { updateHud(); updateTabs(name); }
     const res = def.render(screen, ...args);
     if (typeof res === 'function') cleanup = res;
+    if (def.chrome === 'tabs' && K.worldBar && current === name && document.body.dataset.screen === name) { try { K.worldBar(name, args, screen); } catch (e) { console.error(e); } }
     window.scrollTo(0, 0);
     screen.focus({ preventScroll: true });
   }
@@ -63,15 +64,13 @@ K.ui = (function () {
     $('#hudChar').onclick = () => { K.audio.play('pop'); go('home'); };
   }
   function updateTabs(active) {
-    const mapPath = (K.mission && K.mission.worldPath()) || 'map';
-    const mapOn = active === 'map' || active === 'garden';
+    /* global bar: בית | ההתקדמות שלי | הבית שלי. Maps/games now live inside each world (world tab bar). */
     const T = [
-      ['hub', 'בית', I().hub || I().home, active === 'hub'],
-      [mapPath, 'מפה', I().map, mapOn],
-      ['games', 'משחקים', I().game, active === 'games'],
-      ['home', 'הבית שלי', I().home, active === 'home']
+      ['hub', 'בית', '🏠', active !== 'progress' && active !== 'home'],
+      ['progress', 'ההתקדמות שלי', '⭐', active === 'progress'],
+      ['home', 'הבית שלי', '🏡', active === 'home']
     ];
-    tabs.innerHTML = T.map(([id, label, ic, on]) => `<a href="#/${id}" class="tab${on ? ' on' : ''}" ${on ? 'aria-current="page"' : ''}>${ic}<span>${label}</span></a>`).join('');
+    tabs.innerHTML = T.map(([id, label, ic, on]) => `<a href="#/${id}" class="tab${on ? ' on' : ''}" ${on ? 'aria-current="page"' : ''}><span class="tab-e" aria-hidden="true">${ic}</span><span>${label}</span></a>`).join('');
     $$('.tab', tabs).forEach(a => a.addEventListener('click', () => K.audio.play('tap')));
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
