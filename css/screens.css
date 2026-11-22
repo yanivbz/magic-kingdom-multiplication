@@ -354,3 +354,5 @@
 @media (prefers-reduced-motion: reduce) {
   .hub-char, .wb-e, .soon-e, .wave, #rwStars .rw-e, .hub-hello::after, .world-btn { animation: none !important; }
 }
+.world-btn .wb-t .spk { position: absolute; top: -4px; inset-inline-end: 0; float: none; margin: 0; background: rgba(255,255,255,.95); color: var(--violet-d); }
+.world-btn .wb-t b { padding-left: 42px; }

@@ -170,11 +170,28 @@
     };
     return vs.sort((a, b) => score(b) - score(a))[0];
   }
-  function refreshVoices() { voice = pickVoice(); voiceReady = !!voice; updateAvailability(); }
+  /* English voice for K.speakBtn(text, 'en'): prefer a clear female en-US voice */
+  let enVoice = null;
+  function pickEnVoice() {
+    if (!synth) return null;
+    const vs = (synth.getVoices() || []).filter(v => /^en([-_]|$)/i.test(v.lang));
+    if (!vs.length) return null;
+    const score = v => {
+      const n = v.name || ''; let s = 0;
+      if (/samantha|google us english|aria|jenny|zira|female/i.test(n)) s += 50;
+      if (/^en[-_]US$/i.test(v.lang)) s += 20; else if (/^en[-_]GB$/i.test(v.lang)) s += 10;
+      if (/enhanced|premium|natural|neural/i.test(n)) s += 10;
+      if (/male(?!.*fe)|daniel|david|fred/i.test(n)) s -= 30;
+      return s;
+    };
+    return vs.sort((a, b) => score(b) - score(a))[0];
+  }
+  function refreshVoices() { voice = pickVoice(); enVoice = pickEnVoice(); voiceReady = !!voice; updateAvailability(); }
   if (synth) { refreshVoices(); try { synth.addEventListener('voiceschanged', refreshVoices); } catch (e) { synth.onvoiceschanged = refreshVoices; } }
 
   function updateAvailability() {
     document.documentElement.classList.toggle('spk-off', !voiceReady);
+    document.documentElement.classList.toggle('spk-en-off', !enVoice);
   }
 
   /* ====================================================================== speaking */
@@ -195,10 +212,11 @@
   S.speaking = () => !!curBtn;
   S.voiceName = () => (voice ? voice.name : null);
 
-  function utter(text, my) {
+  function utter(text, my, v) {
+      v = v || voice;
     return new Promise(res => {
-      if (!synth || !voice || my !== token) return res();
-      const u = new SpeechSynthesisUtterance(text); u.voice = voice; u.lang = voice.lang || 'he-IL'; u.rate = 0.9; u.pitch = 1.1; u.volume = 1;
+      if (!synth || !v || my !== token) return res();
+      const u = new SpeechSynthesisUtterance(text); u.voice = v; u.lang = v.lang || 'he-IL'; u.rate = 0.9; u.pitch = 1.1; u.volume = 1;
       let done = false; const fin = () => { if (!done) { done = true; clearInterval(iv); clearTimeout(to); res(); } };
       u.onend = fin; u.onerror = fin;
       const iv = setInterval(() => { if (my !== token) fin(); }, 150);
@@ -223,6 +241,34 @@
     speakSentences(btn, sents);
   }
   S.toggle = toggle;
+
+  /* ====================================================================== shared helper for new screens
+     K.speakBtn(text, lang) -> HTML of a 🔊 button that reads `text` ONLY when tapped.
+     lang: 'he' (default, Hebrew voice + Hebrew spoken-number rules) or 'en' (English voice).
+     Use it next to every instruction / section in new screens; never call speech on screen load. */
+  async function sayText(btn, text, lang) {
+    if (curBtn === btn) return stop();
+    const en = /^en/i.test(lang || '');
+    const v = en ? enVoice : voice;
+    const sents = en ? String(text).split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean) : sentencesOf(String(text));
+    if (!v || !sents.length) return;
+    stop(); const my = token; curBtn = btn; setState(btn, 'speaking');
+    try { synth.cancel(); synth.resume && synth.resume(); } catch (e) {}
+    for (const t of sents) { if (my !== token) return; await utter(t, my, v); }
+    if (my === token) { setState(btn, null); curBtn = null; }
+  }
+  S.say = sayText;
+  const escA = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  K.speakBtn = function (text, lang) {
+    const l = /^en/i.test(lang || '') ? 'en' : 'he';
+    return `<button type="button" class="spk spk-say spk-${l}" data-say="${escA(text)}" data-lang="${l}" aria-pressed="false" aria-label="${l === 'en' ? 'Listen' : 'הקראה בקול'}" title="${l === 'en' ? 'Listen' : 'הקראה בקול'}">${ICON}</button>`;
+  };
+  document.addEventListener('click', e => {
+    const b = e.target.closest && e.target.closest('.spk[data-say]');
+    if (!b) return;
+    e.stopPropagation(); e.preventDefault();
+    sayText(b, b.dataset.say, b.dataset.lang);
+  }, true);
 
   /* ====================================================================== button injection */
   const ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="sp-body" d="M4 9.500v5h3.500L12 18.500v-13L7.500 9.500z" fill="currentColor"/><path class="sp-w sp-w1" d="M15.200 9.300a3.600 3.600 0 0 1 0 5.400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sp-w sp-w2" d="M17.800 6.700a7.300 7.300 0 0 1 0 10.600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
@@ -261,18 +307,9 @@
         });
       }
     }
-    // auto-read: when new blocks appeared, read the most important one
-    if (newBlocks.length) {
-      const batch = newBlocks; newBlocks = [];
-      if (K.store && K.store.state.settings.autoRead && !document.documentElement.classList.contains('spk-off')) {
-        const best = batch.filter(x => x.blk.isConnected && x.def.prio > 0).sort((a, b) => b.def.prio - a.def.prio)[0]
-          || batch.filter(x => x.blk.isConnected && x.blk.matches('.trick-note,.lead'))[0];
-        if (best && best.blk._spk) { clearTimeout(autoT); autoT = setTimeout(() => { if (best.blk.isConnected && best.blk._spk && K.store.state.settings.autoRead) toggleIfIdle(best.blk._spk); }, 450); }
-      }
-    }
+    // No auto-read: speech starts ONLY when the child taps a 🔊 button (app-wide UX rule, v2.3).
+    newBlocks = [];
   }
-  let autoT = 0;
-  function toggleIfIdle(btn) { if (curBtn !== btn) toggle(btn); }
   S.scan = scan;
 
   function start() {

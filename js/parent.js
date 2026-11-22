@@ -55,7 +55,7 @@ K.parent = (function () {
         </section>
         <section class="p-sec"><h3>הגדרות</h3>
           <label class="switch"><input type="checkbox" id="sSound" ${st.settings.sound ? 'checked' : ''}><span>צלילים</span></label>
-          <label class="switch"><input type="checkbox" id="sAuto" ${st.settings.autoRead ? 'checked' : ''}><span>הקראה אוטומטית של הטקסטים (אפשר גם ללחוץ על 🔊 ליד כל טקסט)</span></label>
+          <p class="muted">🔊 הקראה: לוחצים על הרמקול ליד כל טקסט. אין הקראה אוטומטית בכניסה למסך.</p>
           <p class="muted tiny" id="voiceNote"></p>
           <label class="switch"><input type="checkbox" id="sHap" ${st.settings.haptics ? 'checked' : ''}><span>רטט (במכשירים שתומכים)</span></label>
           <label class="name-field inline"><span>שם הילדה</span><input id="sName" type="text" maxlength="14" value="${esc(st.name)}"></label>
@@ -64,7 +64,6 @@ K.parent = (function () {
       </div></div>`;
     $('#x', root).onclick = () => go('hub');
     $('#sSound', root).onchange = e => { st.settings.sound = e.target.checked; K.store.save(); };
-    $('#sAuto', root).onchange = e => { st.settings.autoRead = e.target.checked; K.store.save(); if (!e.target.checked && K.speech) K.speech.stop(); };
     (function voiceNote() {
       const sp = K.speech, el = $('#voiceNote', root); if (!sp || !el) return;
       el.textContent = sp.voiceName() ? `קול ההקראה: ${sp.voiceName()} (קול של המכשיר)` : 'במכשיר הזה אין קול עברי, ולכן כפתורי ההקראה מוסתרים. אפשר להתקין קול עברי בהגדרות המכשיר.';

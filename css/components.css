@@ -191,7 +191,8 @@ button.arr-row { cursor: pointer; width: 100%; } button.arr-row:active { transfo
 @keyframes spkWave { 0%, 100% { opacity: .25; transform: translateX(-1.500px); } 50% { opacity: 1; transform: none; } }
 @keyframes spkRing { 0% { opacity: .55; transform: scale(.9); } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes spkPulse { 50% { transform: scale(1.12); } }
-html.spk-off .spk { display: none !important; }
+html.spk-off .spk:not(.spk-en) { display: none !important; }
+html.spk-en-off .spk.spk-en { display: none !important; }
 .has-spk { display: flow-root; } .spk-float { float: inline-end; margin-inline-start: 10px; margin-block: 0 2px; }
 .spk-corner { position: absolute; top: 10px; inset-inline-end: 10px; z-index: 2; }
 .qcard.has-spk-c .q-ask { padding-inline: 42px; }
