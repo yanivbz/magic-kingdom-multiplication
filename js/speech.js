@@ -270,25 +270,6 @@
     sayText(b, b.dataset.say, b.dataset.lang);
   }, true);
 
-  /* English (en-US) speech for English Land quiz buttons: K.speech.sayEn('pig') — only ever called from a tap. */
-  S.sayEn = function (text, { rate = 0.8 } = {}) {
-    stop(); const my = token;
-    if (!synth || !text) return Promise.resolve();
-    if (!enVoice) enVoice = pickEnVoice();
-    try { synth.cancel(); synth.resume && synth.resume(); } catch (e) {}
-    return new Promise(res => {
-      const u = new SpeechSynthesisUtterance(text);
-      if (enVoice) u.voice = enVoice;
-      u.lang = (enVoice && enVoice.lang) || 'en-US'; u.rate = rate; u.pitch = 1.05; u.volume = 1;
-      let done = false; const fin = () => { if (!done) { done = true; clearTimeout(to); res(); } };
-      u.onend = fin; u.onerror = fin;
-      const to = setTimeout(fin, 3000 + text.length * 160);
-      if (my !== token) return fin();
-      try { synth.speak(u); } catch (e) { fin(); }
-    });
-  };
-  S.enVoiceName = () => (enVoice ? enVoice.name : null);
-
   /* ====================================================================== button injection */
   const ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="sp-body" d="M4 9.500v5h3.500L12 18.500v-13L7.500 9.500z" fill="currentColor"/><path class="sp-w sp-w1" d="M15.200 9.300a3.600 3.600 0 0 1 0 5.400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="sp-w sp-w2" d="M17.800 6.700a7.300 7.300 0 0 1 0 10.600" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   const seen = new WeakSet(); let newBlocks = [];
