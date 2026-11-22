@@ -191,7 +191,8 @@ button.arr-row { cursor: pointer; width: 100%; } button.arr-row:active { transfo
 @keyframes spkWave { 0%, 100% { opacity: .25; transform: translateX(-1.500px); } 50% { opacity: 1; transform: none; } }
 @keyframes spkRing { 0% { opacity: .55; transform: scale(.9); } 100% { opacity: 0; transform: scale(1.35); } }
 @keyframes spkPulse { 50% { transform: scale(1.12); } }
-html.spk-off .spk { display: none !important; }
+html.spk-off .spk:not(.spk-en) { display: none !important; }
+html.spk-en-off .spk.spk-en { display: none !important; }
 .has-spk { display: flow-root; } .spk-float { float: inline-end; margin-inline-start: 10px; margin-block: 0 2px; }
 .spk-corner { position: absolute; top: 10px; inset-inline-end: 10px; z-index: 2; }
 .qcard.has-spk-c .q-ask { padding-inline: 42px; }
@@ -199,3 +200,14 @@ html.spk-off .spk { display: none !important; }
 .spk-head { margin-inline-start: auto; }
 @media (prefers-reduced-motion: reduce) { .spk.speaking .sp-w, .spk.loading, .spk.speaking::after { animation: none !important; } .spk.speaking::after { opacity: .5; transform: none; } }
 .tiny { font-size: 14px; margin: -2px 0 10px; }
+
+/* ---------- v2.3 kid-friendly touch targets ---------- */
+.icon-btn { position: relative; }
+.icon-btn::before { content: ''; position: absolute; inset: -5px; border-radius: 20px; } /* ≥ 56px hit area */
+.hud-stats .icon-btn::before { inset: -7px; }
+.chip { min-height: 52px; padding: 8px 18px; }
+.pick { min-height: 56px; }
+.tool-btn { min-height: 56px; font-size: 15px; border-radius: 18px; }
+.tab { min-height: 60px; }
+.tab span { font-size: 14px; }
+.card { border-radius: 26px; }

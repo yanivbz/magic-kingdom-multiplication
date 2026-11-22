@@ -109,6 +109,7 @@
     $('#toExp').onclick = () => { A('pop'); go('explorer'); };
     $('#toIntro').onclick = () => { A('pop'); go('intro'); };
     $('#toProg').onclick = () => { A('pop'); go('progress'); };
+    if (K.examUI) K.examUI.bindExam(root);
     $$('.node', root).forEach(n => n.onclick = () => {
       A('pop');
       if (n.dataset.area) return areaSheet(n.dataset.area);

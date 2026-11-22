@@ -1,10 +1,10 @@
 {
   "name": "עומר והממלכה הקסומה",
   "short_name": "הממלכה הקסומה",
-  "description": "משחק הרפתקאות ללימוד לוח הכפל בעברית",
+  "description": "אפליקציית למידה והרפתקאות לכיתה ג׳: לוח הכפל, גאומטריה, אנגלית והכנה למבחנים",
   "lang": "he",
   "dir": "rtl",
-  "start_url": "./index.html#/map",
+  "start_url": "./index.html#/hub",
   "scope": "./",
   "id": "./",
   "display": "standalone",
