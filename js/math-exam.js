@@ -347,6 +347,7 @@
           <div class="mx-hero-t"><span class="mx-hero-e" aria-hidden="true">📝</span><div><h1>${d.title}</h1><p>${d.dateLabel} · ${d.grade}</p></div></div>
           <div class="mx-cd"><span class="mx-cd-n" aria-hidden="true">${k >= 0 ? k : '✓'}</span><span class="mx-cd-t">${cd}</span>${SAY(cdSay)}</div>
         </div>
+        ${K.WS_PAGES ? `<div class="mx-ws-entry"><b>📄 דף המורה – למלא</b>${K.WS_PAGES.map(p => `<button class="btn btn-secondary" type="button" data-ws="${p}">עמוד ${p}</button>`).join('')}</div>` : ''}
         <div class="mx-big-btns">
           <button class="mx-bb bb-sheet" id="toSheet" type="button"><span class="bb-e" aria-hidden="true">📄</span><span class="bb-t"><b>דף התרגול של המורה</b><small>${d.teacherSheet.title} · ${solved}/${items.length} פתרת</small><span class="pbar"><i style="width:${Math.max(4, Math.round(solved / items.length * 100))}%"></i></span></span></button>
           <button class="mx-bb bb-mock" id="toMock" type="button"><span class="bb-e" aria-hidden="true">🏆</span><span class="bb-t"><b>מבחן דמה</b><small>${e.mock.plays ? `השיא שלך: ${e.mock.best} מתוך 13` : '13 שאלות מכל הנושאים'}</small></span></button>
@@ -361,6 +362,7 @@
         <button class="mx-orig-entry" id="toOrig" type="button"><span aria-hidden="true">📄</span><b>הדפים המקוריים של המורה</b><small>🔒 להורים</small></button>
       </div>`;
       $('#toSheet').onclick = () => { A('pop'); go('mathx/sheet/1'); };
+      $$('[data-ws]', root).forEach(x => x.onclick = () => { A('pop'); go('mathws/' + x.dataset.ws); });
       $('#toMock').onclick = () => { A('pop'); go('mathx/mock'); };
       $('#toOrig').onclick = () => { A('tap'); openOrig(0); };
       $$('[data-topic]', root).forEach(b => b.onclick = () => { A('pop'); go('mathx/topic/' + b.dataset.topic); });
