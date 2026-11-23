@@ -189,3 +189,4 @@ body.mx-pad-open #screen { padding-bottom: 300px !important; }
 .mx-orig-view img { display: block; width: 100%; height: auto; }
 .mx-orig-view.zoom { cursor: zoom-out; max-height: 78vh; }
 .mx-orig-view.zoom img { width: 220%; max-width: none; }
+.mx-ltr { unicode-bidi: isolate; display: inline-block; }

@@ -302,14 +302,17 @@
 
   /* ====================================================================== shared bits */
   const flowBar = (title) => `<header class="flow-bar mx-bar"><button class="icon-btn" id="mxX" type="button" aria-label="חזרה">${I().close}</button><b class="mx-bar-t">${title}</b><span class="mx-bar-r" id="mxR"></span></header>`;
-  const remember = r => `<div class="mx-rem"><div class="mx-rem-t"><span>${r.text}</span>${SAY(r.text)}</div>${r.visual ? visual(r.visual) : ''}</div>`;
+  /* keep math runs (e.g. 1,234 = 1,000 + 200 + 30 + 4) left-to-right inside the Hebrew text, as on the teacher's page */
+  const ltrMath = t => String(t).replace(/\d[\d,]*(?:\s*[+−\-=≈<>]\s*\d[\d,]*)+/g, m => `<span dir="ltr" class="mx-ltr">${m}</span>`);
+  const remember = r => `<div class="mx-rem"><div class="mx-rem-t"><span>${ltrMath(r.text)}</span>${SAY(r.text)}</div>${r.visual ? visual(r.visual) : ''}</div>`;
   function visual(v) {
     if (v.type === 'placeTable') { const s = String(v.n), names = ['אלפים', 'מאות', 'עשרות', 'יחידות']; return `<div class="mx-ptab"><div class="pt-n" dir="ltr">${fmt(v.n)}</div><div class="pt-g">${s.split('').map((d, i) => `<div><small>${names[i]}</small><b>${d}</b><span dir="ltr">${fmt(+d * Math.pow(10, 3 - i))}</span></div>`).join('')}</div></div>`; }
     if (v.type === 'blocksKey') return ART.blocksKey();
+    if (v.type === 'blocks') return `<div class="mx-art">${ART.blocks(v.th, v.h, v.t, v.u)}</div>`;
     if (v.type === 'roundKey') return `<div class="mx-rkey"><span class="dn">0 1 2 3 4 ⬇ למטה</span><span class="up">5 6 7 8 9 ⬆ למעלה</span></div>`;
     if (v.type === 'pentagonKey') return `<div class="mx-art">${ART.pentagonKey()}</div>`;
     if (v.type === 'anglesKey') return ART.anglesKey();
-    if (v.type === 'verticalExample') return `<div class="mx-vex"><div class="mx-vert sm" dir="ltr" style="--c:5"><div class="vr carry"><span></span><span></span><span>1</span><span>1</span><span></span></div><div class="vr"><span></span>${String(v.a).split('').map(d => `<span>${d}</span>`).join('')}</div><div class="vr"><b class="op">+</b>${String(v.b).split('').map(d => `<span>${d}</span>`).join('')}</div><div class="vr line"></div><div class="vr"><span></span>${String(v.a + v.b).split('').map(d => `<span>${d}</span>`).join('')}</div></div><ul>${v.steps.map(s => `<li>${s}</li>`).join('')}</ul></div>`;
+    if (v.type === 'verticalExample') return `<div class="mx-vex"><div class="mx-vert sm" dir="ltr" style="--c:5"><div class="vr carry"><span></span><span></span><span>1</span><span>1</span><span></span></div><div class="vr"><span></span>${String(v.a).split('').map(d => `<span>${d}</span>`).join('')}</div><div class="vr"><b class="op">+</b>${String(v.b).split('').map(d => `<span>${d}</span>`).join('')}</div><div class="vr line"></div><div class="vr"><span></span>${String(v.a + v.b).split('').map(d => `<span>${d}</span>`).join('')}</div></div><ul>${v.steps.map(s => `<li>${ltrMath(s)}</li>`).join('')}</ul></div>`;
     return '';
   }
   /* screens render into their own host so anything the router adds around them (e.g. the world tab bar) stays */
@@ -351,7 +354,7 @@
         <section class="card mx-topics">
           <div class="mx-sec-h"><h2>📋 נושאי המבחן</h2>${SAY('נושאי המבחן. לחצי על נושא כדי לתרגל אותו.')}</div>
           <p class="mx-note">הנושאים כפי שהמורה כתבה. ליד כל נושא יש תרגול נוסף שהאפליקציה יוצרת לפי הנושא (לא מדף המורה).</p>
-          ${d.topics.map(t => `<div class="mx-tg"><h3><span>${t.title}</span>${SAY(t.title)}</h3>${t.groups.map(g => `${g.title ? `<h4>${g.title}</h4>` : ''}<ul>${g.items.map(b => { const p = e.topics[b.id]; return `<li><span class="mx-bt">${b.text}</span>${SAY(b.text)}<button class="mx-go" type="button" data-topic="${b.id}"><span class="st" aria-label="${p ? p.best : 0} כוכבים">${stars(p ? p.best : 0)}</span><b>תרגול ▶</b></button></li>`; }).join('')}</ul>`).join('')}</div>`).join('')}
+          ${d.topics.map(t => `<div class="mx-tg"><h3><span>${t.title}</span>${SAY(t.title)}</h3>${t.groups.map(g => `${g.title ? `<h4>${g.title}</h4>` : ''}<ul>${g.items.map(b => { const p = e.topics[b.id]; return `<li><span class="mx-bt">${ltrMath(b.text)}</span>${SAY(b.text)}<button class="mx-go" type="button" data-topic="${b.id}"><span class="st" aria-label="${p ? p.best : 0} כוכבים">${stars(p ? p.best : 0)}</span><b>תרגול ▶</b></button></li>`; }).join('')}</ul>`).join('')}</div>`).join('')}
           <div class="mx-bring"><span>✏️ ${d.bring}</span>${SAY(d.bring)}</div>
           <p class="mx-sign">${d.signature}</p>
         </section>
