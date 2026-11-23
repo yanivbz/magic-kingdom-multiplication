@@ -190,3 +190,24 @@ body.mx-pad-open #screen { padding-bottom: 300px !important; }
 .mx-orig-view.zoom { cursor: zoom-out; max-height: 78vh; }
 .mx-orig-view.zoom img { width: 220%; max-width: none; }
 .mx-ltr { unicode-bidi: isolate; display: inline-block; }
+
+/* ---------- interactive original worksheet (#/mathws/<n>) ---------- */
+.ws { max-width: 900px; margin: 0 auto; padding-bottom: 24px; }
+.ws-bar { gap: 8px; }
+.ws-t { flex: 1; font-size: 17px; }
+.ws-zoom { min-height: 40px; padding: 4px 12px; font-size: 14px; }
+.ws-scroll { overflow: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x pan-y pinch-zoom; background: #fff; border-top: 1px solid var(--line, #e3ddf3); border-bottom: 1px solid var(--line, #e3ddf3); }
+.ws-page { position: relative; width: 100%; }
+.ws-page.zoom { width: 200%; }
+.ws-page img { display: block; width: 100%; height: auto; user-select: none; }
+.ws-f { position: absolute; box-sizing: border-box; margin: 0; padding: 0 .2em; border: 2px dashed #9b8cf0; border-radius: .35em; background: rgba(241, 237, 255, .55); color: #2a2350; font: inherit; font-weight: 700; font-size: 1em; text-align: center; outline: none; }
+.ws-f:focus { border-style: solid; border-color: #7c5cff; background: rgba(255, 255, 255, .9); }
+.ws-words { text-align: right; font-weight: 600; }
+.ws-cmp { border-radius: 50%; cursor: pointer; font-size: 1.4em; line-height: 1; }
+.ws-f.ok { border: 2px solid #2bb673; background: rgba(43, 182, 115, .16); }
+.ws-f.try { border: 2px solid #f2a14a; background: rgba(242, 161, 74, .18); }
+.ws-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; padding: 14px 12px; }
+.ws-foot #wsMsg { flex-basis: 100%; text-align: center; font-weight: 700; min-height: 1.2em; }
+.mx-ws-entry { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; padding: 12px 14px; border-radius: 16px; background: #fff; border: 1.5px solid var(--line, #e3ddf3); }
+.mx-ws-entry b { flex: 1; font-size: 17px; }
+.mx-ws-entry .btn { min-height: 44px; }
