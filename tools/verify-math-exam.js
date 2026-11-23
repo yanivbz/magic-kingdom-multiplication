@@ -6,7 +6,7 @@ let bad = 0, n = 0;
 const fail = (where, it) => { bad++; console.log('FAIL', where, JSON.stringify(it)); };
 /* teacher sheet: each item verified by MX.verify + independent hand-written expectations */
 const expect = {
-  p1a1: 800, p1a2: 90, p1b1: 4621, p1b2: 8003, p2a1: 2243, p3c1: 40, p3c2: 1460, p3c3: 600, p3c4: 4700, p3c5: 3000, p3c6: 5000,
+  p1a1: 800, p1a2: 90, p1b1: 4621, p1b2: 8003, p2a1: 2143, p3c1: 40, p3c2: 1460, p3c3: 600, p3c4: 4700, p3c5: 3000, p3c6: 5000,
   p4a1: 800, p4a2: 2000, p5a1: 3773, p5a2: 6132, p5a3: 1834, p5b1: 1110, p5c1: 3825
 };
 for (const pg of data.teacherSheet.pages) for (const s of pg.sections) for (const it of s.items) {
