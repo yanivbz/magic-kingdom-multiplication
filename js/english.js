@@ -355,6 +355,7 @@
       const stars = starsFor(pct);
       const coins = 5 + score * (mock ? 2 : 1);
       K.store.addCoins(coins); K.store.touchStreak();
+      if (K.chest) K.chest.queue(coins);
       let best = false;
       if (mode === 'letters') { const p = en().practice; p.plays++; if (score > (p.best || 0)) { p.best = score; best = true; } }
       else if (mock) {

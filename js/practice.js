@@ -191,6 +191,7 @@
         K.store.addCoins(coins);
         K.lastResult = { mode, area: area.id, ok: s.ok, n: s.n, coins, hardPairs: s.hardPairs, streak, medal: res.medal, better: res.better, newPiece: res.newPiece, bonusGame: false };
       }
+      if (K.chest) K.chest.queue(coins);
       go('result');
     }
 

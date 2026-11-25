@@ -230,6 +230,7 @@
         K.store.addCoins(coins);
         K.lastGeoResult = { mode, ok: s.ok, n: s.n, coins, hard: s.hard, streak, medal: res.medal, better: res.better, first: res.first };
       }
+      if (K.chest) K.chest.queue(coins);
       go('geo-result');
     }
 

@@ -1,0 +1,243 @@
+/* Illustrated room + treasure-chest rewards (grade-3, calm). */
+.home-scene.room-scene {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #c9b8ef;
+  box-shadow: 0 8px 24px rgba(90, 50, 140, .18);
+}
+.room-world {
+  position: absolute;
+  inset: auto;
+  background: url('../assets/hub/room.webp') no-repeat center / 100% 100%;
+  pointer-events: auto;
+}
+.room-item {
+  position: absolute;
+  transform: translate(-50%, -90%);
+  width: 14%;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  z-index: 2;
+  filter: drop-shadow(0 3px 4px rgba(40, 20, 60, .28));
+  touch-action: none;
+}
+.room-item.wall { width: 11%; transform: translate(-50%, -70%); }
+.room-item.shelf { width: 10%; transform: translate(-50%, -100%); }
+.room-item .ri-emoji {
+  display: block;
+  font-size: calc(var(--ri, 1) * 1.7em);
+  line-height: 1;
+  text-align: center;
+  pointer-events: none;
+}
+.room-item.pop { animation: roomPop .7s var(--spring, cubic-bezier(.2, 1.2, .3, 1)) both; }
+.room-item.sparkle .ri-emoji { animation: roomIdle 2.8s ease-in-out infinite; }
+.room-item.sparkle::after {
+  content: '✨';
+  position: absolute;
+  top: -0.35em; inset-inline-start: -0.15em;
+  font-size: .7em;
+  animation: twinkle 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.room-item.dragging { z-index: 8; filter: drop-shadow(0 8px 10px rgba(40, 20, 60, .35)); cursor: grabbing; }
+.room-char {
+  position: absolute;
+  width: 16%;
+  transform: translate(-50%, -92%);
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .18));
+}
+.room-char svg, .room-char img { width: 100%; height: auto; display: block; }
+.room-slot {
+  position: absolute;
+  width: 12%;
+  height: 8%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255, 236, 140, .0);
+  border: 0;
+  padding: 0;
+  z-index: 1;
+}
+.home-stage.is-placing .room-slot {
+  background: rgba(255, 236, 140, .45);
+  box-shadow: 0 0 0 2px rgba(255, 214, 80, .85);
+  animation: slotPulse 1.4s ease-in-out infinite;
+}
+.home-stage.is-placing .room-slot.wall {
+  width: 10%;
+  height: 7%;
+  border-radius: 10px;
+}
+.chest-hot {
+  position: absolute;
+  width: 16%;
+  height: 10%;
+  transform: translate(-50%, -60%);
+  border: 0;
+  padding: 0;
+  background: none;
+  z-index: 4;
+  cursor: pointer;
+}
+.chest-badge {
+  position: absolute;
+  top: -0.2em;
+  inset-inline-end: 8%;
+  width: 1.35em;
+  height: 1.35em;
+  border-radius: 50%;
+  background: #ffd24a;
+  color: #5a2d00;
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 6px rgba(80, 40, 0, .3);
+  animation: badgePop 1.6s ease-in-out infinite;
+}
+.reward-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .6rem;
+  margin: .55rem 0 .15rem;
+  padding: .45rem .7rem;
+  background: #fff7e6;
+  border-radius: 16px;
+  border: 1px solid rgba(230, 180, 60, .35);
+}
+.reward-bar .rb-label { font-weight: 700; font-size: .95rem; color: #5a3a12; }
+.reward-bar .rb-track { display: flex; gap: .28rem; flex: 0 0 auto; }
+.reward-bar .rb-track i {
+  width: 1.15rem; height: .62rem; border-radius: 99px;
+  background: #ead9b0; display: block;
+}
+.reward-bar .rb-track i.on { background: linear-gradient(90deg, #ffd24a, #ffb81f); }
+.room-hint {
+  margin: .4rem 0 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #4a2e7a;
+  min-height: 1.3em;
+}
+.place-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; justify-content: center; margin-top: .45rem; }
+.place-bar span { font-weight: 700; font-size: 1.02rem; flex: 1 1 100%; text-align: center; }
+.place-bar .btn { min-height: 48px; min-width: 44%; font-size: 1.05rem; }
+.coin-pill { transition: transform .25s ease; }
+.coin-pill.bump, #hudCoins.bump, .stat.bump { animation: coinBump .55s ease; }
+
+@keyframes roomPop { from { transform: translate(-50%, -90%) scale(0) rotate(-16deg); } to { transform: translate(-50%, -90%) scale(1); } }
+.room-item.wall.pop { animation-name: roomPopWall; }
+@keyframes roomPopWall { from { transform: translate(-50%, -70%) scale(0); } to { transform: translate(-50%, -70%) scale(1); } }
+@keyframes roomIdle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes twinkle { 0%, 100% { opacity: .2; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes slotPulse { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
+@keyframes badgePop { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+@keyframes coinBump { 0%, 100% { transform: scale(1); } 35% { transform: scale(1.18); } }
+
+/* Treasure overlay */
+.chest-ov {
+  position: fixed; inset: 0; z-index: 240;
+  display: grid; place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  background: rgba(40, 18, 72, .55);
+  opacity: 0; transition: opacity .3s ease;
+}
+.chest-ov.show { opacity: 1; }
+.chest-card {
+  width: min(100%, 380px);
+  background: linear-gradient(180deg, #fff8ee 0%, #f3e8ff 100%);
+  border-radius: 28px;
+  padding: 1.35rem 1.2rem 1.2rem;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(40, 10, 70, .28);
+  transform: translateY(12px) scale(.96);
+  transition: transform .35s var(--spring, cubic-bezier(.2, 1.2, .3, 1));
+}
+.chest-ov.show .chest-card { transform: none; }
+.chest-card h2 { margin: .4rem 0 .3rem; font-size: 1.55rem; line-height: 1.25; color: #4a2278; }
+.chest-box { position: relative; width: 132px; height: 110px; margin: .2rem auto .6rem; }
+.chest-body {
+  position: absolute; left: 16px; right: 16px; bottom: 4px; height: 54px;
+  background: linear-gradient(180deg, #e8b23a, #c48414);
+  border-radius: 6px 6px 12px 12px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.35), 0 6px 10px rgba(80,40,0,.25);
+}
+.chest-body::after {
+  content: '';
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #ffe9a0; box-shadow: 0 0 0 3px #b06a10;
+}
+.chest-lid {
+  position: absolute; left: 12px; right: 12px; top: 28px; height: 32px;
+  background: linear-gradient(180deg, #ffd24a, #e0a020);
+  border-radius: 14px 14px 4px 4px;
+  transform-origin: 12% 100%;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.4);
+  z-index: 2;
+}
+.chest-box.shake .chest-lid, .chest-box.shake .chest-body { animation: chestShake .55s ease; }
+.chest-box.open .chest-lid { transform: rotate(-52deg); transition: transform .45s ease; }
+.chest-glow {
+  position: absolute; inset: -10px -8px 20px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 236, 150, .9), transparent 70%);
+  opacity: 0; pointer-events: none;
+}
+.chest-box.open .chest-glow { opacity: 1; animation: glowPulse 1.4s ease-in-out infinite; }
+.chest-loot { display: flex; flex-direction: column; align-items: center; gap: .35rem; margin: .2rem 0 .55rem; min-height: 3.2rem; }
+.chest-coins {
+  display: inline-flex; align-items: center; gap: .35rem;
+  font-size: 2rem; font-weight: 800; color: #8a5200;
+}
+.chest-coins .cc-ico { font-size: 1.8rem; }
+.chest-item {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: #fff; border-radius: 999px; padding: .28rem .8rem;
+  font-weight: 800; font-size: 1.05rem; color: #4a2278;
+  box-shadow: 0 2px 8px rgba(80, 40, 120, .12);
+}
+.chest-item .ci-e { font-size: 1.4rem; }
+.chest-card .reward-bar { margin: 0 0 .7rem; }
+.chest-card .btn-xl { width: 100%; min-height: 56px; font-size: 1.2rem; }
+.fly-coin {
+  position: fixed; z-index: 250; font-size: 1.5rem; pointer-events: none;
+  transition: left .7s cubic-bezier(.2, .7, .2, 1), top .7s cubic-bezier(.2, .7, .2, 1), opacity .25s ease .5s, transform .7s ease;
+  transform: translate(-50%, -50%);
+}
+.tab.has-chest { position: relative; }
+.tab-chest {
+  position: absolute; top: .15rem; inset-inline-end: .35rem;
+  width: .7rem; height: .7rem; border-radius: 50%;
+  background: #ffd24a; box-shadow: 0 0 0 2px #fff, 0 0 8px #ffd24a;
+  display: block;
+}
+
+@keyframes chestShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px) rotate(-2deg); }
+  40% { transform: translateX(5px) rotate(2deg); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(3px); }
+}
+.chest-box.shake .chest-lid { animation-name: chestShake; }
+@keyframes glowPulse { 0%, 100% { opacity: .7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .room-item.pop, .room-item.sparkle .ri-emoji, .room-item.sparkle::after,
+  .chest-box.shake .chest-lid, .chest-box.shake .chest-body, .chest-box.open .chest-glow,
+  .chest-badge, .home-stage.is-placing .room-slot, .coin-pill.bump { animation: none; }
+  .chest-ov, .chest-card, .chest-box.open .chest-lid, .fly-coin { transition: none; }
+  .chest-ov { opacity: 1; }
+  .chest-card { transform: none; }
+  .chest-box.open .chest-lid { transform: rotate(-52deg); }
+  .chest-box.open .chest-glow { opacity: .7; }
+}
