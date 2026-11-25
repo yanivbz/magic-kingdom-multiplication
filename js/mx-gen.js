@@ -118,7 +118,7 @@
     let n, idx;
     do { n = n4(); idx = ri(0, 3); } while (String(n)[idx] === '0' || String(n).split('').filter(d => d === String(n)[idx]).length > 1);
     const s = String(n), d = +s[idx], ans = d * Math.pow(10, 3 - idx);
-    if (Math.random() < .5) return { kind: 'place', prompt: 'מהו הערך של הספרה שמתחתיה קו?', n, idx, ans };
+    if (Math.random() < .5) return { kind: 'place', mode: 'name', prompt: 'מהו הערך של הספרה שמתחתיה קו?', n, idx, ans, placeName: PLACE[3 - idx] }; // answered by place name
     return { kind: 'place', mode: 'name', prompt: `באיזה מקום נמצאת הספרה שמתחתיה קו?`, n, idx, ans, placeName: PLACE[3 - idx] };
   };
   G.decomp = () => {
