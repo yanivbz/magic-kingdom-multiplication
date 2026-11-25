@@ -216,3 +216,7 @@ body.mx-pad-open #screen { padding-bottom: 300px !important; }
 .ws-chips { flex-direction: column; gap: 10px; }
 .ws-chips .mx-chip { width: 100%; min-height: 52px; font-size: 18px; }
 .ws-pick-sh h2 { text-align: center; margin: 0 0 12px; }
+.ws-mark { background: transparent; border: 2px dashed rgba(155, 140, 240, .5); border-radius: 50%; cursor: pointer; }
+.ws-mark.on { border: 3px solid #7c5cff; background: rgba(124, 92, 255, .08); }
+.ws-mark.on.ok { border-color: #2bb673; } .ws-mark.on.try { border-color: #f2a14a; }
+.ws-f.ws-sm { font-size: .78em; padding: 0; letter-spacing: -.02em; }
