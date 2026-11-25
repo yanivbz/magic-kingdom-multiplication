@@ -44,6 +44,7 @@ K.ui = (function () {
     if (def.chrome === 'tabs' && K.worldBar && current === name && document.body.dataset.screen === name) { try { K.worldBar(name, args, screen); } catch (e) { console.error(e); } }
     window.scrollTo(0, 0);
     screen.focus({ preventScroll: true });
+    if (K.chest && (def.chrome === 'tabs' || /result/.test(name))) K.chest.maybeShow();
   }
   window.addEventListener('hashchange', render);
 
@@ -70,7 +71,8 @@ K.ui = (function () {
       ['progress', 'ההתקדמות שלי', '⭐', active === 'progress'],
       ['home', 'הבית שלי', '🏡', active === 'home']
     ];
-    tabs.innerHTML = T.map(([id, label, ic, on]) => `<a href="#/${id}" class="tab${on ? ' on' : ''}" ${on ? 'aria-current="page"' : ''}><span class="tab-e" aria-hidden="true">${ic}</span><span>${label}</span></a>`).join('');
+    const chest = K.chest && K.chest.tabHasPending && K.chest.tabHasPending();
+    tabs.innerHTML = T.map(([id, label, ic, on]) => `<a href="#/${id}" class="tab${on ? ' on' : ''}${id === 'home' && chest ? ' has-chest' : ''}" ${on ? 'aria-current="page"' : ''}><span class="tab-e" aria-hidden="true">${ic}</span><span>${label}</span>${id === 'home' && chest ? '<i class="tab-chest" aria-hidden="true"></i>' : ''}</a>`).join('');
     $$('.tab', tabs).forEach(a => a.addEventListener('click', () => K.audio.play('tap')));
   }
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

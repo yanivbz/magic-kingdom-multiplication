@@ -31,6 +31,10 @@ K.store = (function () {
     ['medals', 'daily', 'games', 'home', 'friends'].forEach(k => { if (!state[k] || typeof state[k] !== 'object') state[k] = d[k]; });
     if (state.lastWorld !== 'garden') state.lastWorld = 'kefel';
     if (!state.home.place) state.home.place = {};
+    if (!state.home.xy || typeof state.home.xy !== 'object') state.home.xy = {};
+    if (!state.home.rewards || typeof state.home.rewards !== 'object') state.home.rewards = { done: 0, pending: null, sparkle: [] };
+    if (typeof state.home.rewards.done !== 'number') state.home.rewards.done = 0;
+    if (!Array.isArray(state.home.rewards.sparkle)) state.home.rewards.sparkle = [];
     if (!Array.isArray(state.owned)) state.owned = [];
     /* geometry region: always ensure a complete state.geo without touching kefel medals/crown */
     const gd = { units: {}, facts: {}, medals: {}, friends: [], history: [] };
@@ -46,6 +50,7 @@ K.store = (function () {
   }
 
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+  save(); /* persist additive keys from migrate */
   const today = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const dayDiff = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / DAY);
   const fkey = (t, m) => t + '×' + m;
@@ -135,19 +140,22 @@ K.store = (function () {
     return true;
   }
   const needText = it => { const n = it.need || {}; return n.crown ? 'משלימים את הכתר' : n.gold ? 'צריך מדליית זהב' : n.medals ? (n.medals > 1 ? `צריך ${n.medals} מדליות` : 'צריך מדליה') : ''; };
-  function freeSlot(zone) { const used = new Set(K.SHOP.filter(x => x.zone === zone && state.home.place[x.id] != null && state.owned.includes(x.id)).map(x => state.home.place[x.id])); return K.SLOTS[zone].findIndex((_, i) => !used.has(i)); }
+  function slotsOf(zone) { return (K.room && K.room.slotsFor ? K.room.slotsFor(zone) : K.SLOTS[zone]) || []; }
+  function freeSlot(zone) { const used = new Set(K.SHOP.filter(x => x.zone === zone && state.home.place[x.id] != null && state.owned.includes(x.id)).map(x => state.home.place[x.id])); return slotsOf(zone).findIndex((_, i) => !used.has(i)); }
   function place(id, slot) {
-    const it = K.SHOP.find(x => x.id === id); if (!it || !K.SLOTS[it.zone]) return;
+    const it = K.SHOP.find(x => x.id === id); if (!it || !slotsOf(it.zone).length) return;
     const other = K.SHOP.find(x => x.zone === it.zone && x.id !== id && state.home.place[x.id] === slot && state.owned.includes(x.id));
     if (other) { if (state.home.place[id] != null) state.home.place[other.id] = state.home.place[id]; else delete state.home.place[other.id]; }
-    if (slot == null) delete state.home.place[id]; else state.home.place[id] = slot;
+    if (!state.home.xy) state.home.xy = {};
+    if (slot == null) { delete state.home.place[id]; delete state.home.xy[id]; }
+    else state.home.place[id] = slot;
     save();
   }
   function buy(id) {
     const it = K.SHOP.find(x => x.id === id);
     if (!it || state.owned.includes(id) || state.coins < it.price || !unlocked(it)) return false;
     state.coins -= it.price; state.owned.push(id);
-    if (K.SLOTS[it.zone]) { const f = freeSlot(it.zone); if (f >= 0) state.home.place[id] = f; }
+    if (slotsOf(it.zone).length) { const f = freeSlot(it.zone); if (f >= 0) state.home.place[id] = f; }
     save(); return true;
   }
   /* ---- adaptive fact pools (daily practice, mini-games, champion) ---- */

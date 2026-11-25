@@ -131,9 +131,11 @@
         filled++;
         if (correct(f, M[f[1]], v)) { ok++; el.classList.add('ok'); } else el.classList.add('try');
       });
+      const firstPage = ok === F.length && !ws['done' + n];
       ws['done' + n] = ok === F.length ? 1 : (ws['done' + n] || 0); K.store.save();
       $('#wsMsg', root).textContent = ok === F.length ? 'כל הכבוד! הכל נכון 🎉' : filled < F.length ? `נכון ${ok} מתוך ${F.length}. יש עוד מקומות למלא.` : `נכון ${ok} מתוך ${F.length}. נסי לתקן את הכתומים.`;
       if (ok === F.length && K.ui.confetti) K.ui.confetti({ count: 60 });
+      if (firstPage) { const coins = 8; K.store.addCoins(coins); if (K.ui.updateHud) K.ui.updateHud(); if (K.chest) K.chest.queue(coins); }
     }).catch(() => { $('#wsMsg', root).textContent = 'אין חיבור. נסי שוב.'; });
     return () => { if (ro) ro.disconnect(); };
   } });

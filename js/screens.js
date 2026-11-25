@@ -163,36 +163,52 @@
   let newest = null;
   route('home', { chrome: 'tabs', render(root) {
     const st = S(), c = chr();
-    let cat = 'garden', placing = null;
+    let cat = 'garden', placing = null, unmount = null;
     const view = () => st.home.view === 'room' ? 'room' : 'yard';
     function draw() {
+      if (unmount) { unmount(); unmount = null; }
       const own = st.owned.length, total = K.SHOP.length, pieces = K.store.crownPieces();
       const items = K.SHOP.filter(it => it.cat === cat);
       const pIt = placing ? K.SHOP.find(x => x.id === placing) : null;
+      const pg = K.chest.progress();
+      const hint = view() === 'room' ? K.chest.hint(placing) : (placing && pIt ? `בחרי מקום ל${pIt.name}` : '');
+      const sceneInner = view() === 'room' ? '' : `${K.art.homeScene(c.id, st.owned, newest, { view: view(), placing })}<div class="home-char">${K.art.char(c.id, 'happy')}</div>`;
       root.innerHTML = `<div class="home">
         <div class="home-top">
           <div class="seg" role="tablist" aria-label="איפה בבית"><button role="tab" class="${view() === 'yard' ? 'on' : ''}" data-v="yard" aria-selected="${view() === 'yard'}">🏰 בחוץ</button><button role="tab" class="${view() === 'room' ? 'on' : ''}" data-v="room" aria-selected="${view() === 'room'}">🛋️ החדר שלי</button></div>
-          <div class="coin-pill">${I().coin}<b id="coinBal">${st.coins}</b></div></div>
-        <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene">${K.art.homeScene(c.id, st.owned, newest, { view: view(), placing })}<div class="home-char${view() === 'room' ? ' in-room' : ''}">${K.art.char(c.id, 'happy')}</div></div>
-          ${placing ? `<div class="place-bar"><span>${pIt.emoji} בחרי מקום ל${pIt.name}</span><button class="btn btn-secondary" id="store">לאחסון</button><button class="btn btn-primary" id="donePl">סיימתי</button></div>` : ''}</div>
-        <div class="crown-row card">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${pieces === K.AREAS.length ? 'הכתר שלם! אפשר להציב אותו על הטירה (בקטגוריית הטירה).' : `${pieces} מתוך ${K.AREAS.length} חלקים. כל מדליה באתגר האלופה של אזור מוסיפה חלק.`}</small><div class="pieces">${K.AREAS.map(a => `<span class="${st.medals[a.id] ? 'on' : ''}" style="--pc:${a.piece.color}">${st.medals[a.id] ? K.MEDALS[st.medals[a.id]].emoji : '◇'} ${a.piece.name}</span>`).join('')}</div></div></div>
-        <div class="home-head"><div><h2 class="h-big">הבית שלי</h2><p class="sub">${own ? `יש לך ${own} דברים מתוך ${total}. לחצי על דבר שכבר קנית כדי להזיז אותו.` : 'אספי מטבעות ומדליות וקשטי את הטירה!'}</p></div></div>
+          <div class="coin-pill" id="homeCoins">${I().coin}<b id="coinBal">${st.coins}</b></div></div>
+        ${K.chest.barHTML(pg)}
+        <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene${view() === 'room' ? ' room-scene' : ''}" id="homeScene">${sceneInner}</div>
+          ${hint ? `<p class="room-hint">${hint}</p>` : ''}
+          ${placing ? `<div class="place-bar"><span>${pIt.emoji} בחרי מקום ל${pIt.name}</span><button class="btn btn-secondary btn-lg" id="store">לאחסון</button><button class="btn btn-primary btn-lg" id="donePl">סיימתי</button></div>` : ''}</div>
+        <div class="home-head"><div><h2 class="h-big">הבית שלי</h2><p class="sub">${own ? `יש לך ${own} דברים מתוך ${total}. לחצי על דבר שכבר קנית כדי להזיז אותו.` : 'אספי מטבעות מהשיעורים וקשטי את החדר!'}</p></div></div>
         <div class="chip-row cats" role="tablist">${K.SHOP_CATS.map(x => `<button class="chip${x.id === cat ? ' on' : ''}" data-cat="${x.id}" role="tab" aria-selected="${x.id === cat}">${x.emoji} ${x.name}</button>`).join('')}</div>
         <div class="shop" role="list">${items.map(it => {
           const has = st.owned.includes(it.id), can = st.coins >= it.price, open = K.store.unlocked(it), movable = has && !!K.SLOTS[it.zone];
-          const placed = movable && st.home.place[it.id] != null;
+          const placedNow = movable && (st.home.place[it.id] != null || (st.home.xy && st.home.xy[it.id]));
           return `<button class="shop-item${has ? ' owned' : ''}${!has && (!can || !open) ? ' cant' : ''}${!open && !has ? ' locked' : ''}" data-id="${it.id}" role="listitem" ${has && !movable ? 'disabled' : ''} aria-label="${it.name}, ${has ? (movable ? 'לחיצה להזזה' : 'כבר בבית') : !open ? K.store.needText(it) : it.price + ' מטבעות'}">
             <span class="si-emoji">${it.emoji}</span><b>${it.name}</b>
-            <span class="si-price">${has ? `<span class="si-own">${I().check} ${movable ? (placed ? 'להזיז' : 'במחסן') : 'בבית'}</span>` : !open ? `<span class="si-need">🏅 ${K.store.needText(it)}</span>` : it.price ? `${I().coin}<em>${it.price}</em>` : '<em>מתנה</em>'}</span></button>`; }).join('')}</div>
+            <span class="si-price">${has ? `<span class="si-own">${I().check} ${movable ? (placedNow ? 'להזיז' : 'במחסן') : 'בבית'}</span>` : !open ? `<span class="si-need">🏅 ${K.store.needText(it)}</span>` : it.price ? `${I().coin}<em>${it.price}</em>` : '<em>מתנה</em>'}</span></button>`; }).join('')}</div>
+        <div class="crown-row card">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${pieces === K.AREAS.length ? 'הכתר שלם! אפשר להציב אותו על הטירה (בקטגוריית הטירה).' : `${pieces} מתוך ${K.AREAS.length} חלקים. כל מדליה באתגר האלופה של אזור מוסיפה חלק.`}</small><div class="pieces">${K.AREAS.map(a => `<span class="${st.medals[a.id] ? 'on' : ''}" style="--pc:${a.piece.color}">${st.medals[a.id] ? K.MEDALS[st.medals[a.id]].emoji : '◇'} ${a.piece.name}</span>`).join('')}</div></div></div>
         <div class="home-actions"><button class="btn btn-secondary" id="chg">החלפת דמות</button></div></div>`;
       $$('.seg button', root).forEach(b => b.onclick = () => { st.home.view = b.dataset.v; placing = null; K.store.save(); A('tap'); draw(); });
       $$('.cats .chip', root).forEach(b => b.onclick = () => { cat = b.dataset.cat; A('tap'); draw(); });
-      $$('.home-svg .slot', root).forEach(g => g.onclick = () => { K.store.place(placing, Number(g.dataset.slot)); A('pop'); newest = placing; placing = null; draw(); });
+      function afterPlace(id, slot) {
+        if (slot === 'refresh' || slot === 'xy') { if (id) { newest = id; K.chest.clearSparkle(id); } A('pop'); draw(); return; }
+        K.store.place(id, slot);
+        if (st.home.xy) delete st.home.xy[id];
+        K.store.save();
+        newest = id; placing = null;
+        if (id) K.chest.clearSparkle(id);
+        A('pop'); draw();
+      }
+      $$('.home-svg .slot', root).forEach(g => g.onclick = () => { afterPlace(placing, Number(g.dataset.slot)); });
       const sto = $('#store', root); if (sto) sto.onclick = () => { K.store.place(placing, null); placing = null; A('tap'); draw(); };
       const dn = $('#donePl', root); if (dn) dn.onclick = () => { placing = null; draw(); };
+      if (view() === 'room') unmount = K.room.mount($('#homeScene', root), { placing, newest, onPlace: afterPlace });
       $$('.shop-item', root).forEach(b => b.onclick = () => {
         const it = K.SHOP.find(x => x.id === b.dataset.id);
-        if (st.owned.includes(it.id)) { // move an owned slot item
+        if (st.owned.includes(it.id)) {
           if (!K.SLOTS[it.zone]) return;
           const v = it.zone === 'yard' ? 'yard' : 'room';
           st.home.view = v; placing = it.id; newest = null; A('pop'); draw();
@@ -206,8 +222,8 @@
           else st.home.view = 'yard';
           K.store.save(); K.ui.updateHud(); draw();
           $('.home-stage', root).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-          setTimeout(() => { const el = $('.home-scene .pop-in') || $('.home-scene'); burstAt(el, { count: 50, stars: true }); }, 60);
-          toast(K.SLOTS[it.zone] && st.home.place[it.id] == null ? `${it.name} במחסן: אין מקום פנוי. לחצי עליה כדי להחליף מקום.` : `${it.name} נוסף לבית! אפשר ללחוץ עליו כדי להזיז.`);
+          setTimeout(() => { const el = $('.home-scene .pop-in, .home-scene .room-item.pop') || $('.home-scene'); burstAt(el, { count: 50, stars: true }); }, 60);
+          toast(K.SLOTS[it.zone] && st.home.place[it.id] == null && !(st.home.xy && st.home.xy[it.id]) ? `${it.name} במחסן: אין מקום פנוי. לחצי עליה כדי להחליף מקום.` : `${it.name} נוסף לבית! אפשר ללחוץ עליו כדי להזיז.`);
         } else { A('wrong'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 500); toast(`חסרים עוד ${it.price - st.coins} מטבעות. תרגול קצר יעזור!`); }
       });
       $('#chg').onclick = () => {
@@ -216,6 +232,6 @@
       };
     }
     draw();
-    return () => { newest = null; };
+    return () => { if (unmount) unmount(); newest = null; };
   } });
 })();

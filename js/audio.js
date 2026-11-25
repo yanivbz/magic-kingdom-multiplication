@@ -34,10 +34,11 @@ K.audio = (function () {
     unlock() { [N.C5, N.E5, N.G5, N.C6, N.E6].forEach((f, i) => tone(f, i * 0.09, 0.35, { type: 'triangle', vol: 0.26 })); },
     fanfare(){ [[N.C5,0],[N.C5,.12],[N.C5,.24],[N.G5,.36],[N.E5,.55],[N.G5,.7],[N.C6,.9]].forEach(([f,t]) => tone(f, t, 0.3, { type: 'triangle', vol: 0.3 })); },
     whoosh() { tone(200, 0, 0.25, { type: 'sawtooth', vol: 0.05, slideTo: 900 }); },
-    buy()    { [N.G5, N.C6].forEach((f, i) => tone(f, i * 0.07, 0.18, { type: 'triangle', vol: 0.25 })); }
+    buy()    { [N.G5, N.C6].forEach((f, i) => tone(f, i * 0.07, 0.18, { type: 'triangle', vol: 0.25 })); },
+    chest()  { [N.G4, N.C5, N.E5, N.G5, N.C6].forEach((f, i) => tone(f, i * 0.11, 0.38, { type: 'sine', vol: 0.22 })); tone(N.E6, 0.58, 0.32, { type: 'triangle', vol: 0.16 }); }
   };
   const vib = {
-    tap: 8, right: [18, 40, 28], wrong: [30], star: [20, 40, 20, 40, 60], coin: 12, fanfare: [30, 50, 30, 50, 90], buy: [15, 30, 15]
+    tap: 8, right: [18, 40, 28], wrong: [30], star: [20, 40, 20, 40, 60], coin: 12, fanfare: [30, 50, 30, 50, 90], buy: [15, 30, 15], chest: [14, 40, 20, 50, 24]
   };
   return {
     unlock: ensure,

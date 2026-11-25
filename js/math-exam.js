@@ -486,7 +486,7 @@
       return runner(root, { title: '🎯 תרגול נוסף', label: `נושא: ${b.text} · שאלות שהאפליקציה יצרה לפי הנושא (לא מדף המורה)`, items, mock: false,
         onEnd: (r, rt) => {
           const e = exState(), st = starsFor(r.firstTry, r.total), t = e.topics[id] || (e.topics[id] = { best: 0, plays: 0 });
-          t.plays++; t.best = Math.max(t.best, st); K.store.save(); coins(r.firstTry); K.store.touchStreak && K.store.touchStreak();
+          t.plays++; t.best = Math.max(t.best, st); K.store.save(); coins(r.firstTry); K.store.touchStreak && K.store.touchStreak(); if (K.chest && r.firstTry) K.chest.queue(r.firstTry);
           endCard(rt, { emoji: st === 3 ? '🏆' : st === 2 ? '🌟' : '💪', title: st === 3 ? 'מושלם!' : st ? 'כל הכבוד!' : 'התאמנת יפה!', sub: `${r.firstTry} מתוך ${r.total} בניסיון הראשון · +${r.firstTry} 🪙`, stars: st });
         } });
     });
@@ -501,7 +501,7 @@
       runner(root, { title: '🏆 מבחן דמה', label: `${items.length} שאלות, אחת מכל נושא ברשימה של המורה. השאלות נוצרו באפליקציה (לא מדף המורה). בלי רמזים – רק עונים ובודקים.`, items, mock: true,
         onEnd: (r, rt) => {
           const e = exState(); e.mock.plays++; e.mock.best = Math.max(e.mock.best || 0, r.right); e.mock.last = K.store.today(); K.store.save();
-          coins(r.right * 2); K.store.touchStreak && K.store.touchStreak();
+          coins(r.right * 2); K.store.touchStreak && K.store.touchStreak(); if (K.chest && r.right) K.chest.queue(r.right * 2);
           const st = r.right === r.total ? 3 : r.right >= 10 ? 2 : r.right >= 5 ? 1 : 0;
           const miss = [...new Set(r.missed)].map(id => bl.find(b => b.id === id)).filter(Boolean);
           endCard(rt, { emoji: st === 3 ? '🏆' : st === 2 ? '🥈' : '💪', title: `${r.right} מתוך ${r.total}`, sub: st === 3 ? 'מושלם! את מוכנה למבחן!' : 'כל הכבוד על המאמץ! כדאי לתרגל עוד:', stars: st,

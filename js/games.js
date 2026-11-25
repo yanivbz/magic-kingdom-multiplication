@@ -60,6 +60,7 @@ K.GAMES = {
     let cleanup = null;
     function end(score, coins, line, recKind = kind) {
       K.store.addCoins(coins);
+      if (K.chest) K.chest.queue(coins);
       const rec = K.store.gameResult(recKind, score);
       const c = K.CHARACTERS[S().char] || K.CHARACTERS.bear;
       stat('');
