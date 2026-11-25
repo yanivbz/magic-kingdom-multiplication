@@ -130,7 +130,7 @@ body[data-screen="hub"] #screen.enter { animation: islandIn .45s ease both; }
   transform-origin: 50% 92%;
   will-change: transform;
 }
-.hub-girl img {
+.hub-girl .girl-idle {
   height: 100%;
   width: auto;
   display: block;
@@ -140,8 +140,27 @@ body[data-screen="hub"] #screen.enter { animation: islandIn .45s ease both; }
   pointer-events: none;
   -webkit-user-drag: none;
 }
-.hub-girl.idle img { animation: girlBreathe 2.8s ease-in-out infinite; }
-.hub-girl.walk img { animation: girlBob .36s ease-in-out infinite; }
+.hub-girl .girl-walk {
+  display: none;
+  height: 100%;
+  aspect-ratio: 274 / 500;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  background: url(../assets/hub/girl-walk.webp) 0 0 no-repeat;
+  background-size: 400% 100%;
+  transform-origin: 50% 100%;
+}
+.hub-girl.idle .girl-idle { animation: girlBreathe 2.8s ease-in-out infinite; }
+.hub-girl.walk .girl-idle { display: none; }
+.hub-girl.walk .girl-walk {
+  display: block;
+  animation: girlWalk 0.5s steps(4) infinite, girlBob 0.36s ease-in-out infinite;
+}
+@keyframes girlWalk {
+  from { background-position: 0 0; }
+  to { background-position: -400% 0; }
+}
 @keyframes girlBreathe {
   0%, 100% { transform: scaleY(1); }
   50% { transform: scaleY(1.025) translateY(-0.8%); }
@@ -307,6 +326,6 @@ body[data-screen="hub"] #screen.enter { animation: islandIn .45s ease both; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .island-cloud, .island-spark, .hub-girl.idle img, .hub-girl.walk img { animation: none !important; }
+  .island-cloud, .island-spark, .hub-girl.idle .girl-idle, .hub-girl.walk .girl-walk { animation: none !important; }
   .island.leaving, body[data-screen="hub"] #screen.enter { animation: none !important; transition: none !important; opacity: 1; }
 }

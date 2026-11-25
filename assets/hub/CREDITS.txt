@@ -4,3 +4,7 @@ Illustrated home-hub art for עומר והממלכה הקסומה.
 - english-house.webp: illustrated ABC cottage, white studio background removed,
   used as the English station sprite.
 Do not add photographs of real people to this folder or the public site.
+- girl-walk.webp: 4-frame walk cycle derived from an illustrated walk sheet
+  (white background removed). Opposite-step frames were built by swapping
+  the lower legs below the dress hem so the stride reads clearly. Illustration
+  only, not a photograph.
