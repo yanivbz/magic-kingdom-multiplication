@@ -9,13 +9,26 @@ K.ROOM_SLOTS = {
     [33, 47.2], [42, 47.2], [70, 54]
   ]
 };
+K.YARD_SLOTS = [
+  [32, 52], [50, 54], [68, 52], [22, 58], [55, 60],
+  [78, 58], [40, 62], [62, 64], [28, 66], [72, 66],
+  [44, 48], [58, 49]
+];
+K.YARD_FIXED = {
+  flowers: [26, 62], rainbow: [78, 22], butterfly: [54, 35], flag: [27, 12],
+  lantern: [42, 37], balloon: [52, 24], windows: [36, 26], moon: [86, 16],
+  turret: [48, 18], goldroof: [32, 16], crowntop: [30, 11]
+};
 K.REWARD_EVERY = 3;
 K.room = (function () {
   const IW = 720, IH = 1280;
   const CHEST = [32, 57];
   const CHAR = [72, 66];
+  const CHAR_YARD = [34, 56];
+  const POODLE = [66.5, 41.5];
   const FLOOR = { x0: 24, x1: 82, y0: 56, y1: 72 };
   const WALL = { x0: 22, x1: 84, y0: 34, y1: 56 };
+  const LAWN = { x0: 16, x1: 86, y0: 44, y1: 70 };
   const isShelf = i => i === 3 || i === 4 || i === 5;
   const reduced = () => !!(K.ui && K.ui.reduced && K.ui.reduced());
   const SAY = ['איזה יופי!', 'כאן זה מושלם', 'כל הכבוד!', 'אוהבת את זה'];
@@ -36,17 +49,23 @@ K.room = (function () {
       bub.hidden = true;
     }, 1600);
   }
-  const slotsFor = zone => zone === 'yard' ? K.SLOTS.yard : (K.ROOM_SLOTS[zone] || K.SLOTS[zone] || []);
-  const zoneBox = zone => zone === 'wall' ? WALL : FLOOR;
+  const slotsFor = zone => zone === 'yard' ? (K.YARD_SLOTS || K.SLOTS.yard) : (K.ROOM_SLOTS[zone] || K.SLOTS[zone] || []);
+  const zoneBox = zone => zone === 'wall' ? WALL : zone === 'yard' ? LAWN : FLOOR;
+  let runSoon = false;
 
-  function layout(stage, world) {
+  function layout(stage, world, focusY) {
     const rw = stage.clientWidth, rh = stage.clientHeight;
     if (!rw || !rh) return 1;
     const s = Math.max(rw / IW, rh / IH);
     world.style.width = IW * s + 'px';
     world.style.height = IH * s + 'px';
     world.style.left = (rw - IW * s) / 2 + 'px';
-    world.style.top = (rh - IH * s) / 2 + 'px';
+    if (focusY == null) world.style.top = (rh - IH * s) / 2 + 'px';
+    else {
+      const vis = rh / (IH * s);
+      const topFrac = Math.max(0, Math.min(1 - vis, focusY - vis / 2));
+      world.style.top = (-topFrac * IH * s) + 'px';
+    }
     return s;
   }
 
@@ -66,23 +85,30 @@ K.room = (function () {
     const xy = st.home.xy && st.home.xy[it.id];
     if (xy && Number.isFinite(xy.x) && Number.isFinite(xy.y)) return { x: xy.x, y: xy.y, slot: st.home.place[it.id] };
     const slot = st.home.place[it.id];
-    if (slot == null) return null;
-    const p = slotsFor(it.zone)[slot];
-    return p ? { x: p[0], y: p[1], slot } : null;
+    if (slot != null) {
+      const p = slotsFor(it.zone)[slot];
+      if (p) return { x: p[0], y: p[1], slot };
+    }
+    const f = K.YARD_FIXED && K.YARD_FIXED[it.id];
+    return f ? { x: f[0], y: f[1], slot: null, fixed: true } : null;
   }
 
   function mount(stage, opts) {
     const st = K.store.state, placing = opts.placing || null, newest = opts.newest || null;
+    const view = opts.view === 'yard' ? 'yard' : 'room';
     const onPlace = opts.onPlace || (() => {});
     const pIt = placing ? K.SHOP.find(x => x.id === placing) : null;
+    const isYard = view === 'yard';
     stage.classList.add('room-scene');
+    stage.classList.toggle('yard-scene', isYard);
     const world = document.createElement('div');
-    world.className = 'room-world';
+    world.className = 'room-world' + (isYard ? ' yard-world' : '');
     world.setAttribute('role', 'img');
-    world.setAttribute('aria-label', 'החדר של עומר');
+    world.setAttribute('aria-label', isYard ? 'החצר של עומר' : 'החדר של עומר');
     const spark = (st.home.rewards && st.home.rewards.sparkle) || [];
+    const zones = isYard ? ['yard', 'fixed'] : ['floor', 'wall'];
 
-    const placed = K.SHOP.filter(it => st.owned.includes(it.id) && (it.zone === 'floor' || it.zone === 'wall') && itemPos(st, it));
+    const placed = K.SHOP.filter(it => st.owned.includes(it.id) && zones.includes(it.zone) && itemPos(st, it));
     placed.forEach(it => {
       const pos = itemPos(st, it);
       const el = document.createElement('button');
@@ -97,15 +123,42 @@ K.room = (function () {
       world.appendChild(el);
     });
 
+    const chAt = isYard ? CHAR_YARD : CHAR;
     const ch = document.createElement('div');
-    ch.className = 'room-char idle';
-    ch.style.left = CHAR[0] + '%';
-    ch.style.top = CHAR[1] + '%';
+    ch.className = 'room-char idle' + (isYard ? ' face-right' : '');
+    ch.style.left = chAt[0] + '%';
+    ch.style.top = chAt[1] + '%';
     ch.setAttribute('aria-hidden', 'true');
-    ch.innerHTML = '<div class="omer-say" hidden></div><div class="shadow"></div><img class="girl-idle" src="assets/hub/girl.webp" alt="" draggable="false">';
+    ch.innerHTML = '<div class="omer-say" hidden></div><div class="shadow"></div><div class="girl-wrap"><img class="girl-idle" src="assets/hub/girl.webp" alt="" draggable="false"></div>';
     world.appendChild(ch);
 
-    if (st.home.rewards && st.home.rewards.pending) {
+    let dog = null;
+    if (isYard) {
+      dog = document.createElement('button');
+      dog.type = 'button';
+      dog.className = 'yard-poodle idle';
+      dog.style.left = POODLE[0] + '%';
+      dog.style.top = POODLE[1] + '%';
+      dog.setAttribute('aria-label', 'הפודל');
+      dog.innerHTML = '<span class="poodle-heart" hidden>💜</span><span class="poodle-say" hidden></span><span class="shadow"></span><img src="assets/hub/poodle.webp" alt="" draggable="false">';
+      const DOG_SAY = ['ווף ווף!', 'הוא שמח!', 'אוהב אותך!'];
+      dog.onclick = ev => {
+        ev.stopPropagation();
+        dog.classList.remove('wag'); void dog.offsetWidth; dog.classList.add('wag');
+        const heart = dog.querySelector('.poodle-heart'), say = dog.querySelector('.poodle-say');
+        heart.hidden = false; heart.classList.add('show');
+        say.hidden = false; say.textContent = DOG_SAY[Math.floor(Math.random() * DOG_SAY.length)]; say.classList.add('show');
+        if (K.audio) K.audio.play('pop');
+        setTimeout(() => {
+          dog.classList.remove('wag');
+          heart.classList.remove('show'); heart.hidden = true;
+          say.classList.remove('show'); say.hidden = true;
+        }, 1400);
+      };
+      world.appendChild(dog);
+    }
+
+    if (!isYard && st.home.rewards && st.home.rewards.pending) {
       const hot = document.createElement('button');
       hot.type = 'button';
       hot.className = 'chest-hot';
@@ -133,7 +186,7 @@ K.room = (function () {
 
     stage.innerHTML = '';
     stage.appendChild(world);
-    const fit = () => layout(stage, world);
+    const fit = () => layout(stage, world, isYard ? 0.42 : null);
     fit();
     const ro = window.ResizeObserver ? new ResizeObserver(fit) : null;
     if (ro) ro.observe(stage);
@@ -187,6 +240,7 @@ K.room = (function () {
     }
     world.querySelectorAll('.room-item').forEach(el => {
       const it = K.SHOP.find(x => x.id === el.dataset.id);
+      if (!it || it.zone === 'fixed') { el.classList.add('fixed'); return; }
       el.addEventListener('pointerdown', ev => {
         if (ev.button && ev.button !== 0) return;
         ev.preventDefault();
@@ -201,7 +255,9 @@ K.room = (function () {
 
     if (opts.cheer) {
       const line = SAY[(opts.newest || 'x').length % SAY.length];
-      cheerT = setTimeout(() => cheerOmer(ch, line), 80);
+      cheerT = setTimeout(() => { cheerOmer(ch, line); if (isYard) poodleRun(); }, 80);
+    } else if (isYard && runSoon) {
+      cheerT = setTimeout(poodleRun, 280);
     }
 
     return () => {
@@ -211,7 +267,34 @@ K.room = (function () {
     };
   }
 
-  return { mount, layout, slotsFor, itemPos };
+  function poodleRun() {
+    runSoon = false;
+    const dog = document.querySelector('.yard-poodle');
+    const girl = document.querySelector('.yard-scene .room-char');
+    if (!dog || !girl) return;
+    if (K.ui && K.ui.reduced && K.ui.reduced()) return;
+    const x0 = parseFloat(dog.style.left), y0 = parseFloat(dog.style.top);
+    const x1 = parseFloat(girl.style.left) + 7, y1 = parseFloat(girl.style.top);
+    dog.classList.toggle('face-right', x1 > x0);
+    dog.classList.add('running');
+    const anim = dog.animate([
+      { left: x0 + '%', top: y0 + '%' },
+      { left: x1 + '%', top: y1 + '%', offset: 0.46 },
+      { left: x1 + '%', top: y1 + '%', offset: 0.56 },
+      { left: x0 + '%', top: y0 + '%' }
+    ], { duration: 2200, easing: 'ease-in-out' });
+    anim.onfinish = () => {
+      dog.classList.remove('running', 'face-right');
+      dog.style.left = x0 + '%';
+      dog.style.top = y0 + '%';
+    };
+  }
+  function queuePoodleRun() {
+    if (document.querySelector('.yard-poodle')) poodleRun();
+    else runSoon = true;
+  }
+
+  return { mount, layout, slotsFor, itemPos, poodleRun, queuePoodleRun };
 })();
 
 K.chest = (function () {
@@ -288,6 +371,7 @@ K.chest = (function () {
     if (K.ui && K.ui.updateHud) K.ui.updateHud();
     K.audio.play('coin');
     flyToHouse();
+    if (K.room && K.room.queuePoodleRun) K.room.queuePoodleRun();
     if (p.item) {
       const card = el && el.querySelector('.chest-card');
       if (card) {
@@ -380,19 +464,22 @@ K.chest = (function () {
     maybeShow({ delay: 280 });
   }
 
-  function hint(placing) {
+  function hint(placing, view) {
     const st = K.store.state;
+    const inYard = view === 'yard';
+    const where = inYard ? 'בחצר' : 'בחדר';
     if (placing) {
       const it = K.SHOP.find(x => x.id === placing);
-      return it ? `לחצי על מקום בחדר ל${it.name}, או גררי אותו` : 'לחצי על מקום בחדר, או גררי את הפריט';
+      return it ? `לחצי על מקום ${where} ל${it.name}, או גררי אותו` : `לחצי על מקום ${where}, או גררי את הפריט`;
     }
+    const zones = inYard ? ['yard'] : ['floor', 'wall'];
     const unplaced = st.owned.some(id => {
       const it = K.SHOP.find(x => x.id === id);
-      return it && (it.zone === 'floor' || it.zone === 'wall') && !K.room.itemPos(st, it);
+      return it && zones.includes(it.zone) && !K.room.itemPos(st, it);
     });
     const spark = ((st.home.rewards && st.home.rewards.sparkle) || []).some(id => st.owned.includes(id));
-    if (unplaced || spark) return 'יש לך פריט חדש! לחצי עליו ואז בחרי מקום בחדר';
-    return 'אפשר לשים פריט על המדף, ליד החלון או על השטיח';
+    if (unplaced || spark) return `יש לך פריט חדש! לחצי עליו ואז בחרי מקום ${where}`;
+    return inYard ? 'אפשר לשים פריטים על הדשא, ליד הפרחים או ליד הבריכה' : 'אפשר לשים פריט על המדף, ליד החלון או על השטיח';
   }
 
   function clearSparkle(id) {

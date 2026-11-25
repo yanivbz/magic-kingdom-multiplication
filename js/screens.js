@@ -171,14 +171,14 @@
       const items = K.SHOP.filter(it => it.cat === cat);
       const pIt = placing ? K.SHOP.find(x => x.id === placing) : null;
       const pg = K.chest.progress();
-      const hint = view() === 'room' ? K.chest.hint(placing) : (placing && pIt ? `בחרי מקום ל${pIt.name}` : '');
-      const sceneInner = view() === 'room' ? '' : `${K.art.homeScene(c.id, st.owned, newest, { view: view(), placing })}<div class="home-char">${K.art.char(c.id, 'happy')}</div>`;
+      const hint = K.chest.hint(placing, view());
+      const sceneInner = '';
       root.innerHTML = `<div class="home">
         <div class="home-top">
           <div class="seg" role="tablist" aria-label="איפה בבית"><button role="tab" class="${view() === 'yard' ? 'on' : ''}" data-v="yard" aria-selected="${view() === 'yard'}">🏰 בחוץ</button><button role="tab" class="${view() === 'room' ? 'on' : ''}" data-v="room" aria-selected="${view() === 'room'}">🛋️ החדר שלי</button></div>
           <div class="coin-pill" id="homeCoins">${I().coin}<b id="coinBal">${st.coins}</b></div></div>
         ${K.chest.barHTML(pg)}
-        <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene${view() === 'room' ? ' room-scene' : ''}" id="homeScene">${sceneInner}</div>
+        <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene room-scene${view() === 'yard' ? ' yard-scene' : ''}" id="homeScene">${sceneInner}</div>
           ${hint ? `<p class="room-hint">${hint}</p>` : ''}
           ${placing ? `<div class="place-bar"><span>${pIt.emoji} בחרי מקום ל${pIt.name}</span><button class="btn btn-secondary btn-lg" id="store">לאחסון</button><button class="btn btn-primary btn-lg" id="donePl">סיימתי</button></div>` : ''}</div>
         <div class="home-head home-head-slim"><p class="sub">${own ? `יש לך ${own} מתוך ${total}. בחרי פריט לשים בחדר.` : 'אספי מטבעות בשיעורים וקשטי את החדר!'}</p></div>
@@ -214,7 +214,7 @@
       $$('.home-svg .slot', root).forEach(g => g.onclick = () => { afterPlace(placing, Number(g.dataset.slot)); });
       const sto = $('#store', root); if (sto) sto.onclick = () => { K.store.place(placing, null); placing = null; A('tap'); draw(); };
       const dn = $('#donePl', root); if (dn) dn.onclick = () => { placing = null; draw(); };
-      if (view() === 'room') { unmount = K.room.mount($('#homeScene', root), { placing, newest, cheer: doCheer && !placing, onPlace: afterPlace }); doCheer = false; }
+      unmount = K.room.mount($('#homeScene', root), { view: view(), placing, newest, cheer: doCheer && !placing, onPlace: afterPlace }); doCheer = false;
       $$('.shop-item', root).forEach(b => b.onclick = () => {
         const it = K.SHOP.find(x => x.id === b.dataset.id);
         if (st.owned.includes(it.id)) {
