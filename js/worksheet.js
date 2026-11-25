@@ -8,7 +8,7 @@
   /* [fieldId, itemId, key-part, x1, y1, x2, y2, type] — type: num (default) | words | cmp */
   const PAGES = {
     1: [
-      ['a1', 'p1a1', 0, 470, 1168, 645, 1240], ['a2', 'p1a2', 0, 1128, 1168, 1303, 1240],
+      ['a1', 'p1a1', 0, 470, 1168, 645, 1240, 'pick'], ['a2', 'p1a2', 0, 1128, 1168, 1303, 1240, 'pick'],
       ['b1', 'p1b1', 0, 523, 1332, 760, 1404], ['b2', 'p1b2', 0, 824, 1414, 1064, 1486],
       ['c1', 'p1c1', 0, 342, 1578, 1286, 1653, 'words'],
       ['d1p', 'p1d1', 'prev', 1013, 1850, 1313, 1914], ['d1n', 'p1d1', 'next', 388, 1850, 688, 1914],
@@ -53,6 +53,7 @@
     if (it.kind === 'eq') return +[...it.text.matchAll(/\[(\d+)\]/g)][part][1];
     if (it.kind === 'prevnext') return it[part];
     if (it.kind === 'toWords') return it.n;
+    if (it.kind === 'place') return it.placeName;
     if (it.kind === 'nlfill') return it.ans[part];
     if (it.kind === 'vertical') return +String(it.ans).padStart(4, '0')[part];
     if (it.kind === 'word' && part === 'ex') return exOpts(it)[0];
@@ -63,7 +64,7 @@
   const F$ = n => K.MX.fmt(n);
   /* word problem "תרגיל": the correct exercise first (as the key), then the other operation */
   const exOpts = it => it.op === '+' ? [`${F$(it.a)} + ${F$(it.b)}`, `${F$(it.a)} − ${F$(it.b)}`] : [`${F$(it.a)} − ${F$(it.b)}`, `${F$(it.a)} + ${F$(it.b)}`];
-  const optsOf = (f, it) => f[7] === 'words' ? WORD_OPTS : it.kind === 'word' ? exOpts(it) : it.options;
+  const optsOf = (f, it) => f[7] === 'words' ? WORD_OPTS : it.kind === 'word' ? exOpts(it) : it.kind === 'place' ? ['יחידות', 'עשרות', 'מאות', 'אלפים'] : it.options;
   const num = v => { const s = String(v).replace(/[,\s]/g, ''); return /^\d+$/.test(s) ? +s : NaN; };
   function correct(f, it, v) {
     const k = keyOf(it, f[2]);

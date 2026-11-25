@@ -39,4 +39,8 @@ for (const g of topicGens) for (let k = 0; k < 3000; k++) {
   if (it.kind === 'cmp' && it.a === it.b) fail('cmp same', it);
 }
 console.log(`checked ${n} items + words 1..10000 + rounding table; failures: ${bad}`);
+/* page 1 א is answered by the place name */
+{ const d = JSON.parse(require('fs').readFileSync(__dirname + '/../data/exams/math-geo-2026-12-20.json', 'utf8')); const all = {}; d.teacherSheet.pages.forEach(p => p.sections.forEach(s => s.items.forEach(i => { all[i.id] = i; })));
+  if (all.p1a1.placeName !== 'מאות' || all.p1a2.placeName !== 'עשרות' || !MX.verify(all.p1a1) || !MX.verify(all.p1a2)) { console.error('place-name check failed'); process.exit(1); } console.log('place names ok'); }
 process.exit(bad ? 1 : 0);
+

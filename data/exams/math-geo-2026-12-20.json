@@ -79,8 +79,8 @@
         ],
         "sections": [
           { "letter": "א", "text": "מהו הערך של הספרה שמתחתיה קו?", "items": [
-            { "id": "p1a1", "kind": "place", "n": 5821, "idx": 1, "ans": 800 },
-            { "id": "p1a2", "kind": "place", "n": 2094, "idx": 2, "ans": 90 }
+            { "id": "p1a1", "kind": "place", "n": 5821, "idx": 1, "ans": 800, "mode": "name", "placeName": "מאות" },
+            { "id": "p1a2", "kind": "place", "n": 2094, "idx": 2, "ans": 90, "mode": "name", "placeName": "עשרות" }
           ]},
           { "letter": "ב", "text": "כתבי בספרות:", "items": [
             { "id": "p1b1", "kind": "toDigits", "words": "ארבעת אלפים שש מאות עשרים ואחת", "ans": 4621 },
