@@ -163,7 +163,7 @@
   let newest = null;
   route('home', { chrome: 'tabs', render(root) {
     const st = S(), c = chr();
-    let cat = 'garden', placing = null, unmount = null;
+    let cat = (st.home.view === 'room' ? 'furniture' : 'garden'), placing = null, unmount = null, doCheer = false;
     const view = () => st.home.view === 'room' ? 'room' : 'yard';
     function draw() {
       if (unmount) { unmount(); unmount = null; }
@@ -181,31 +181,40 @@
         <div class="home-stage${placing ? ' is-placing' : ''}"><div class="home-scene${view() === 'room' ? ' room-scene' : ''}" id="homeScene">${sceneInner}</div>
           ${hint ? `<p class="room-hint">${hint}</p>` : ''}
           ${placing ? `<div class="place-bar"><span>${pIt.emoji} בחרי מקום ל${pIt.name}</span><button class="btn btn-secondary btn-lg" id="store">לאחסון</button><button class="btn btn-primary btn-lg" id="donePl">סיימתי</button></div>` : ''}</div>
-        <div class="home-head"><div><h2 class="h-big">הבית שלי</h2><p class="sub">${own ? `יש לך ${own} דברים מתוך ${total}. לחצי על דבר שכבר קנית כדי להזיז אותו.` : 'אספי מטבעות מהשיעורים וקשטי את החדר!'}</p></div></div>
+        <div class="home-head home-head-slim"><p class="sub">${own ? `יש לך ${own} מתוך ${total}. בחרי פריט לשים בחדר.` : 'אספי מטבעות בשיעורים וקשטי את החדר!'}</p></div>
         <div class="chip-row cats" role="tablist">${K.SHOP_CATS.map(x => `<button class="chip${x.id === cat ? ' on' : ''}" data-cat="${x.id}" role="tab" aria-selected="${x.id === cat}">${x.emoji} ${x.name}</button>`).join('')}</div>
-        <div class="shop" role="list">${items.map(it => {
+        <div class="shop shop-tray" role="list">${items.map(it => {
           const has = st.owned.includes(it.id), can = st.coins >= it.price, open = K.store.unlocked(it), movable = has && !!K.SLOTS[it.zone];
           const placedNow = movable && (st.home.place[it.id] != null || (st.home.xy && st.home.xy[it.id]));
-          return `<button class="shop-item${has ? ' owned' : ''}${!has && (!can || !open) ? ' cant' : ''}${!open && !has ? ' locked' : ''}" data-id="${it.id}" role="listitem" ${has && !movable ? 'disabled' : ''} aria-label="${it.name}, ${has ? (movable ? 'לחיצה להזזה' : 'כבר בבית') : !open ? K.store.needText(it) : it.price + ' מטבעות'}">
+          const need = !has && open && !can ? it.price - st.coins : 0;
+          const price = has ? `<span class="si-own">${I().check} ${movable ? (placedNow ? 'להזיז' : 'במחסן') : 'בבית'}</span>`
+            : !open ? `<span class="si-need">🏅 ${K.store.needText(it)}</span>`
+            : need ? `<span class="si-price short">עוד ${need} ${I().coin}</span>`
+            : it.price ? `<span class="si-price ok">${I().coin}<em>${it.price}</em></span>` : '<em>מתנה</em>';
+          const cls = `shop-item${has ? ' owned' : ''}${!has && (!can || !open) ? ' cant' : ''}${!has && can && open ? ' afford' : ''}${!open && !has ? ' locked' : ''}`;
+          const label = has ? (movable ? 'לחיצה להזזה' : 'כבר בבית') : !open ? K.store.needText(it) : need ? `עוד ${need} מטבעות` : it.price + ' מטבעות, אפשר לקנות';
+          return `<button class="${cls}" data-id="${it.id}" role="listitem" ${has && !movable ? 'disabled' : ''} aria-label="${it.name}, ${label}">
             <span class="si-emoji">${it.emoji}</span><b>${it.name}</b>
-            <span class="si-price">${has ? `<span class="si-own">${I().check} ${movable ? (placedNow ? 'להזיז' : 'במחסן') : 'בבית'}</span>` : !open ? `<span class="si-need">🏅 ${K.store.needText(it)}</span>` : it.price ? `${I().coin}<em>${it.price}</em>` : '<em>מתנה</em>'}</span></button>`; }).join('')}</div>
+            ${has || !open ? `<span class="si-price">${price}</span>` : price}</button>`; }).join('')}</div>
         <div class="crown-row card">${K.art.crown()}<div><b>הכתר של הממלכה</b><small>${pieces === K.AREAS.length ? 'הכתר שלם! אפשר להציב אותו על הטירה (בקטגוריית הטירה).' : `${pieces} מתוך ${K.AREAS.length} חלקים. כל מדליה באתגר האלופה של אזור מוסיפה חלק.`}</small><div class="pieces">${K.AREAS.map(a => `<span class="${st.medals[a.id] ? 'on' : ''}" style="--pc:${a.piece.color}">${st.medals[a.id] ? K.MEDALS[st.medals[a.id]].emoji : '◇'} ${a.piece.name}</span>`).join('')}</div></div></div>
         <div class="home-actions"><button class="btn btn-secondary" id="chg">החלפת דמות</button></div></div>`;
-      $$('.seg button', root).forEach(b => b.onclick = () => { st.home.view = b.dataset.v; placing = null; K.store.save(); A('tap'); draw(); });
+      $$('.seg button', root).forEach(b => b.onclick = () => { st.home.view = b.dataset.v; placing = null; if (b.dataset.v === 'room') cat = 'furniture'; else if (cat === 'furniture') cat = 'garden'; K.store.save(); A('tap'); draw(); });
       $$('.cats .chip', root).forEach(b => b.onclick = () => { cat = b.dataset.cat; A('tap'); draw(); });
       function afterPlace(id, slot) {
-        if (slot === 'refresh' || slot === 'xy') { if (id) { newest = id; K.chest.clearSparkle(id); } A('pop'); draw(); return; }
+        if (slot === 'refresh') { A('pop'); draw(); return; }
+        if (slot === 'xy') { if (id) { newest = id; K.chest.clearSparkle(id); doCheer = true; } A('pop'); draw(); return; }
         K.store.place(id, slot);
         if (st.home.xy) delete st.home.xy[id];
         K.store.save();
         newest = id; placing = null;
         if (id) K.chest.clearSparkle(id);
+        doCheer = true;
         A('pop'); draw();
       }
       $$('.home-svg .slot', root).forEach(g => g.onclick = () => { afterPlace(placing, Number(g.dataset.slot)); });
       const sto = $('#store', root); if (sto) sto.onclick = () => { K.store.place(placing, null); placing = null; A('tap'); draw(); };
       const dn = $('#donePl', root); if (dn) dn.onclick = () => { placing = null; draw(); };
-      if (view() === 'room') unmount = K.room.mount($('#homeScene', root), { placing, newest, onPlace: afterPlace });
+      if (view() === 'room') { unmount = K.room.mount($('#homeScene', root), { placing, newest, cheer: doCheer && !placing, onPlace: afterPlace }); doCheer = false; }
       $$('.shop-item', root).forEach(b => b.onclick = () => {
         const it = K.SHOP.find(x => x.id === b.dataset.id);
         if (st.owned.includes(it.id)) {
@@ -217,7 +226,7 @@
         }
         if (!K.store.unlocked(it)) { A('wrong'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 500); toast(`${it.name}: ${K.store.needText(it)} באתגר האלופה. 🏆`); return; }
         if (K.store.buy(it.id)) {
-          A('buy'); newest = it.id;
+          A('buy'); newest = it.id; doCheer = true;
           if (K.SLOTS[it.zone]) st.home.view = it.zone === 'yard' ? 'yard' : 'room';
           else st.home.view = 'yard';
           K.store.save(); K.ui.updateHud(); draw();
