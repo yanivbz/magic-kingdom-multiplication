@@ -18,6 +18,24 @@ K.room = (function () {
   const WALL = { x0: 22, x1: 84, y0: 34, y1: 56 };
   const isShelf = i => i === 3 || i === 4 || i === 5;
   const reduced = () => !!(K.ui && K.ui.reduced && K.ui.reduced());
+  const SAY = ['איזה יופי!', 'כאן זה מושלם', 'כל הכבוד!', 'אוהבת את זה'];
+  function cheerOmer(ch, line) {
+    if (!ch) return;
+    const bub = ch.querySelector('.omer-say') || (() => { const b = document.createElement('div'); b.className = 'omer-say'; ch.appendChild(b); return b; })();
+    bub.hidden = false;
+    bub.textContent = line || SAY[Math.floor(Math.random() * SAY.length)];
+    ch.classList.remove('idle', 'hop');
+    void ch.offsetWidth;
+    ch.classList.add('hop');
+    bub.classList.add('show');
+    if (K.audio) K.audio.play('pop');
+    return setTimeout(() => {
+      ch.classList.remove('hop');
+      ch.classList.add('idle');
+      bub.classList.remove('show');
+      bub.hidden = true;
+    }, 1600);
+  }
   const slotsFor = zone => zone === 'yard' ? K.SLOTS.yard : (K.ROOM_SLOTS[zone] || K.SLOTS[zone] || []);
   const zoneBox = zone => zone === 'wall' ? WALL : FLOOR;
 
@@ -80,10 +98,11 @@ K.room = (function () {
     });
 
     const ch = document.createElement('div');
-    ch.className = 'room-char';
+    ch.className = 'room-char idle';
     ch.style.left = CHAR[0] + '%';
     ch.style.top = CHAR[1] + '%';
-    ch.innerHTML = K.art.char((K.CHARACTERS[st.char] || K.CHARACTERS.bear).id, 'happy');
+    ch.setAttribute('aria-hidden', 'true');
+    ch.innerHTML = '<div class="omer-say" hidden></div><div class="shadow"></div><img class="girl-idle" src="assets/hub/girl.webp" alt="" draggable="false">';
     world.appendChild(ch);
 
     if (st.home.rewards && st.home.rewards.pending) {
@@ -120,20 +139,20 @@ K.room = (function () {
     if (ro) ro.observe(stage);
     window.addEventListener('resize', fit);
 
-    /* drag an already-placed item, or the one being placed */
-    let drag = null;
+    /* tap = a little bounce; drag starts only after a short move */
+    let drag = null, cheerT = 0;
     const toPct = ev => {
       const r = world.getBoundingClientRect();
       return { x: (ev.clientX - r.left) / r.width * 100, y: (ev.clientY - r.top) / r.height * 100 };
     };
-    function startDrag(el, ev, it) {
-      ev.preventDefault();
-      el.classList.add('dragging');
-      const p = toPct(ev);
-      drag = { el, it, x: p.x, y: p.y };
-    }
     function moveDrag(ev) {
       if (!drag) return;
+      if (!drag.moved) {
+        const dx = ev.clientX - drag.sx, dy = ev.clientY - drag.sy;
+        if (dx * dx + dy * dy < 64) return;
+        drag.moved = true;
+        drag.el.classList.add('dragging');
+      }
       const p = toPct(ev);
       drag.x = p.x; drag.y = p.y;
       drag.el.style.left = p.x + '%';
@@ -141,9 +160,17 @@ K.room = (function () {
     }
     function endDrag() {
       if (!drag) return;
-      const { el, it, x, y } = drag;
-      el.classList.remove('dragging');
+      const d = drag;
       drag = null;
+      d.el.classList.remove('dragging');
+      if (!d.moved) {
+        d.el.classList.remove('tap-fun');
+        void d.el.offsetWidth;
+        d.el.classList.add('tap-fun');
+        if (K.audio) K.audio.play('pop');
+        return;
+      }
+      const { it, x, y } = d;
       const n = nearest(it.zone, x, y);
       const box = zoneBox(it.zone);
       if (n.d <= 8) {
@@ -155,7 +182,6 @@ K.room = (function () {
         K.store.place(it.id, n.i >= 0 ? n.i : (st.home.place[it.id] != null ? st.home.place[it.id] : 0));
         onPlace(it.id, 'xy');
       } else {
-        /* snap back via redraw */
         onPlace(it.id, 'refresh');
       }
     }
@@ -163,7 +189,9 @@ K.room = (function () {
       const it = K.SHOP.find(x => x.id === el.dataset.id);
       el.addEventListener('pointerdown', ev => {
         if (ev.button && ev.button !== 0) return;
-        startDrag(el, ev, it);
+        ev.preventDefault();
+        const p = toPct(ev);
+        drag = { el, it, x: p.x, y: p.y, sx: ev.clientX, sy: ev.clientY, moved: false };
         try { el.setPointerCapture(ev.pointerId); } catch (e) {}
       });
     });
@@ -171,7 +199,13 @@ K.room = (function () {
     world.addEventListener('pointerup', endDrag);
     world.addEventListener('pointercancel', endDrag);
 
+    if (opts.cheer) {
+      const line = SAY[(opts.newest || 'x').length % SAY.length];
+      cheerT = setTimeout(() => cheerOmer(ch, line), 80);
+    }
+
     return () => {
+      clearTimeout(cheerT);
       if (ro) ro.disconnect();
       window.removeEventListener('resize', fit);
     };
