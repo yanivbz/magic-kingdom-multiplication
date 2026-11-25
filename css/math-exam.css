@@ -211,3 +211,8 @@ body.mx-pad-open #screen { padding-bottom: 300px !important; }
 .mx-ws-entry { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 12px 0; padding: 12px 14px; border-radius: 16px; background: #fff; border: 1.5px solid var(--line, #e3ddf3); }
 .mx-ws-entry b { flex: 1; font-size: 17px; }
 .mx-ws-entry .btn { min-height: 44px; }
+.ws-pick { cursor: pointer; font-size: .9em; white-space: nowrap; overflow: hidden; }
+.ws-pick:empty::after { content: 'לבחור ▾'; color: #7c5cff; font-weight: 600; }
+.ws-chips { flex-direction: column; gap: 10px; }
+.ws-chips .mx-chip { width: 100%; min-height: 52px; font-size: 18px; }
+.ws-pick-sh h2 { text-align: center; margin: 0 0 12px; }

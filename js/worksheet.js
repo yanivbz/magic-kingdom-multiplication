@@ -48,6 +48,8 @@
     if (!e.ws || typeof e.ws !== 'object') e.ws = {};
     return e.ws;
   }
+  /* 2,530: the correct words + distractors (2,350 · 5,230 · 2,503); checked by K.MX.fromWords, never by position */
+  const WORD_OPTS = ['אלפיים חמש מאות ושלושים', 'אלפיים שלוש מאות וחמישים', 'חמשת אלפים מאתיים ושלושים', 'אלפיים חמש מאות ושלוש'];
   const CYCLE = ['', '<', '>', '='];
 
   route('mathws', { chrome: 'none', render(root, arg) {
@@ -56,6 +58,7 @@
         <b class="ws-t">📄 דף המורה – עמוד ${n}</b><button class="btn btn-secondary ws-zoom" id="wsZoom" type="button" aria-pressed="false">🔍 הגדלה</button></header>
       <div class="ws-scroll" id="wsScroll"><div class="ws-page" id="wsPage"><img src="${IMG(n)}" alt="דף התרגול של המורה, עמוד ${n}" width="${PW}" height="${PH}" draggable="false">
         ${F.map(f => { const st = `left:${f[3] / PW * 100}%;top:${f[4] / PH * 100}%;width:${(f[5] - f[3]) / PW * 100}%;height:${(f[6] - f[4]) / PH * 100}%`;
+          if (f[7] === 'words') return `<button type="button" class="ws-f ws-words ws-pick" data-f="${f[0]}" style="${st}" aria-label="בחירת התשובה במילים"></button>`;
           return f[7] === 'cmp' ? `<button type="button" class="ws-f ws-cmp" dir="ltr" data-f="${f[0]}" style="${st}" aria-label="סימן השוואה"></button>`
             : `<input class="ws-f${f[7] === 'words' ? ' ws-words' : ''}" data-f="${f[0]}" style="${st}" ${f[7] === 'words' ? 'dir="rtl" type="text"' : 'dir="ltr" type="text" inputmode="numeric" pattern="[0-9,]*"'} autocomplete="off" aria-label="תשובה">`; }).join('')}
       </div></div>
@@ -66,9 +69,16 @@
     const ro = window.ResizeObserver ? new ResizeObserver(fit) : null; if (ro) ro.observe(page); fit();
     $$('.ws-f', root).forEach(el => {
       const id = el.dataset.f;
-      if (el.tagName === 'BUTTON') { el.textContent = saved[id] || ''; el.onclick = () => { const v = CYCLE[(CYCLE.indexOf(el.textContent) + 1) % CYCLE.length]; el.textContent = v; saved[id] = v; el.classList.remove('ok', 'try'); K.store.save(); }; }
+      if (el.classList.contains('ws-pick')) { el.textContent = saved[id] || ''; el.onclick = () => pickWords(el, id); }
+      else if (el.tagName === 'BUTTON') { el.textContent = saved[id] || ''; el.onclick = () => { const v = CYCLE[(CYCLE.indexOf(el.textContent) + 1) % CYCLE.length]; el.textContent = v; saved[id] = v; el.classList.remove('ok', 'try'); K.store.save(); }; }
       else { el.value = saved[id] || ''; el.oninput = () => { saved[id] = el.value; el.classList.remove('ok', 'try'); K.store.save(); }; }
     });
+    /* words answer: choose from options (correct spelling + digit-place swaps), like the app's exam items */
+    function pickWords(el, id) {
+      const opts = K.MX.shuffle(WORD_OPTS.slice());
+      const sh = K.ui.sheet(`<div class="ws-pick-sh"><h2>בחרי את המספר במילים</h2><div class="mx-chips ws-chips">${opts.map(o => `<button type="button" class="mx-chip${o === el.textContent ? ' on' : ''}">${o}</button>`).join('')}</div></div>`);
+      $$('.mx-chip', sh.el).forEach(b => b.onclick = () => { el.textContent = b.textContent; saved[id] = b.textContent; el.classList.remove('ok', 'try'); K.store.save(); sh.close(); });
+    }
     $('#wsZoom', root).onclick = e => { const on = page.classList.toggle('zoom'); e.currentTarget.setAttribute('aria-pressed', on); e.currentTarget.textContent = on ? '🔍 דף שלם' : '🔍 הגדלה'; fit(); };
     $$('[data-p]', root).forEach(b => b.onclick = () => go('mathws/' + b.dataset.p, true));
     $('#wsX', root).onclick = () => go('mathexam');
