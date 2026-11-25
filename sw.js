@@ -1,5 +1,5 @@
 /* Offline-first service worker. Bump VERSION when any asset changes. */
-const VERSION = 'kefel-v2.11.0';
+const VERSION = 'kefel-v2.12.0';
 const ASSETS = [
   './', 'index.html', 'manifest.json',
   'css/base.css', 'css/components.css', 'css/screens.css', 'css/extra.css', 'css/geo.css', 'css/english.css', 'css/math-exam.css', 'css/calm.css', 'css/island.css', 'css/room.css',
@@ -7,7 +7,7 @@ const ASSETS = [
   'js/lesson.js', 'js/practice.js', 'js/games.js', 'js/explorer.js', 'js/intro.js', 'js/parent.js',
   'js/geo-screens.js', 'js/geo-lesson.js', 'js/geo-practice.js', 'js/speech.js', 'js/english-data.js', 'js/english.js', 'js/mx-gen.js', 'js/mx-art.js', 'js/math-exam.js', 'js/worksheet.js', 'js/app.js',
   'data/exams/index.json', 'data/exams/english-2026-11-30.json', 'data/exams/math-geo-2026-12-20.json', 'data/exams/math-2026-12-20/ws/page-1.webp', 'data/exams/math-2026-12-20/ws/page-2.webp', 'data/exams/math-2026-12-20/ws/page-3.webp', 'data/exams/math-2026-12-20/ws/page-4.webp', 'data/exams/math-2026-12-20/ws/page-5.webp', 'data/exams/math-2026-12-20/ws/page-6.webp',
-  'assets/hub/island.webp', 'assets/hub/girl.webp', 'assets/hub/avatar.webp', 'assets/hub/cloud.webp', 'assets/hub/english-house.webp', 'assets/hub/girl-walk.webp', 'assets/hub/room.webp',
+  'assets/hub/island.webp', 'assets/hub/girl.webp', 'assets/hub/avatar.webp', 'assets/hub/cloud.webp', 'assets/hub/english-house.webp', 'assets/hub/girl-walk.webp', 'assets/hub/room.webp', 'assets/hub/yard.webp', 'assets/hub/poodle.webp',
   'fonts/rubik-hebrew-wght-normal.woff2', 'fonts/rubik-latin-wght-normal.woff2',
   'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png', 'icons/favicon-32.png'
 ];
