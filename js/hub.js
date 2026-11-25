@@ -77,51 +77,32 @@
   }
 
   route('hub', { chrome: 'tabs', render(root) {
-    const st = S(), c = chr(), m = K.mission.hubNext();
+    const st = S(), m = K.mission.hubNext(), r = rewards();
     const name = st.name ? esc(st.name) : 'עומר';
-    const exams = K.SUBJECTS.filter(x => x.examPrep);
-    const r = rewards();
-    const upcoming = exams.map(x => ({ x, k: daysTo(x.examPrep.date) })).filter(e => e.k != null).sort((p, q) => p.k - q.k);
-    const tileProg = sub => {
-      if (sub.status === 'soon') return `<span class="st-badge noread">✨ בקרוב</span>`;
-      const p = sub.progress ? sub.progress() : null;
-      if (!p) return '';
-      return `<span class="st-prog noread"><span class="pbar"><i style="width:${Math.max(4, Math.round(p.pct * 100))}%"></i></span><em>⭐ ${Math.round(p.pct * 100)}%</em></span>`;
-    };
-    const examSub = upcoming.length ? `<span class="st-badge noread">⏰ ${daysTxt(upcoming[0].k)}</span>` : `<span class="st-badge noread">${exams.length} מקצועות</span>`;
-    root.innerHTML = `<div class="hub">
-      <div class="hub-hello compact">
-        <div class="hub-char">${K.art.char(c.id, 'happy')}</div>
-        <div class="hub-hi">
-          <h1>שלום ${name}!</h1>
-          <p>${cheer(r, name)}</p>
-        </div>
-      </div>
-      <section class="subj-pick" aria-labelledby="pickTitle">
-        <h2 class="hub-sec" id="pickTitle">מה נלמד היום?</h2>
-        <div class="subj-grid">
-          ${K.SUBJECTS.map((sub, i) => `<button class="subj-tile ${sub.cls}${sub.status === 'soon' ? ' soon' : ''}" data-sub="${sub.id}" type="button" style="--i:${i}" aria-label="${sub.name}${sub.status === 'soon' ? ', בקרוב' : ''}">
-            <span class="st-e" aria-hidden="true">${sub.emoji}</span>
-            <b${sub.ltr ? ' dir="ltr"' : ''}>${sub.short || sub.name}</b>
-            ${tileProg(sub)}
-          </button>`).join('')}
-          ${exams.length ? `<button class="subj-tile exams" id="toExams" type="button" style="--i:${K.SUBJECTS.length}" aria-label="מבחנים: בחירת מבחן">
-            <span class="st-e" aria-hidden="true">📝</span>
-            <b>מבחנים</b>
-            ${examSub}
-          </button>` : ''}
-        </div>
-      </section>
-      <div class="now-mini card">
-        <div class="nm-t"><small>מה עכשיו?</small><b>${m.title}</b></div>
-        ${K.speakBtn ? K.speakBtn(m.msg) : ''}
-        <button class="btn btn-primary" id="mission" type="button">${m.cta} ▶</button>
-      </div>
-    </div>`;
-    $('#mission').onclick = () => { A('pop'); K.mission.start(m); };
-    $$('[data-sub]', root).forEach(b => b.onclick = () => { A('pop'); openSubject(K.subject(b.dataset.sub)); });
-    const te = $('#toExams'); if (te) te.onclick = () => { A('pop'); examPicker(); };
-    bindExam(root);
+    return K.island.mount(root, {
+      stars: r.stars,
+      coins: st.coins,
+      soundOn: !!(st.settings && st.settings.sound),
+      nowTitle: m.title,
+      avLabel: 'הפרופיל של ' + name,
+      onAvatar: () => go('home'),
+      onStars: () => go('progress'),
+      onParent: () => K.parent.gate(),
+      onNow: () => K.mission.start(m),
+      onSound() {
+        st.settings.sound = !st.settings.sound;
+        K.store.save();
+        K.audio.unlock();
+        if (st.settings.sound) K.audio.play('pop');
+        return st.settings.sound;
+      },
+      onEnter(name) {
+        if (name === 'kefel') openSubject(K.subject('kefel'));
+        else if (name === 'shapes') openSubject(K.subject('geo'));
+        else if (name === 'english') openSubject(K.subject('english'));
+        else if (name === 'exam') examPicker();
+      }
+    });
   } });
 
   /* placeholder world for subjects that are not built yet (e.g. English Land) */

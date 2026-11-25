@@ -1,0 +1,6 @@
+Illustrated home-hub art for עומר והממלכה הקסומה.
+- island.webp, girl.webp, avatar.webp, cloud.webp: original illustrations
+  created for this app. The character is an illustration only (not a photograph).
+- english-house.webp: illustrated ABC cottage, white studio background removed,
+  used as the English station sprite.
+Do not add photographs of real people to this folder or the public site.
