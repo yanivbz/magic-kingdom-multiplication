@@ -79,6 +79,18 @@ K.island = (function () {
 
     let pos = { ...START }, flip = 1, walking = false, arrived = null, going = null, raf = 0, lastTap = { name: null, t: 0 };
 
+    function clampChips() {
+      const ir = island.getBoundingClientRect(), pad = 8;
+      world.querySelectorAll('.stn .chip').forEach(chip => {
+        chip.style.setProperty('--cx', '0px');
+        const r = chip.getBoundingClientRect();
+        let dx = 0;
+        if (r.left < ir.left + pad) dx = ir.left + pad - r.left;
+        else if (r.right > ir.right - pad) dx = ir.right - pad - r.right;
+        if (dx) chip.style.setProperty('--cx', dx + 'px');
+      });
+    }
+
     function layout() {
       const W = island.clientWidth, H = island.clientHeight;
       const scale = Math.max(W / IW, H / IH);
@@ -88,6 +100,7 @@ K.island = (function () {
       world.style.left = ((W - w) / 2) + 'px';
       world.style.top = ((H - h) / 2) + 'px';
       placeGirl();
+      clampChips();
     }
 
     function placeGirl() {
